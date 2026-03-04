@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.DEV ? 'http://localhost:8788' : '';
+// In production, set VITE_API_URL to your Worker URL, e.g.:
+//   https://document-intelligence-api.<your-subdomain>.workers.dev
+// For local dev, run the worker with `cd worker && npx wrangler dev` (defaults to port 8787)
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8787' : '');
 
 async function post(path, body) {
   const resp = await fetch(`${API_BASE}${path}`, {
