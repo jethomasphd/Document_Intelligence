@@ -2,7 +2,12 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
+  'Content-Type': 'application/json',
 };
+
+function jsonResponse(body, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: CORS_HEADERS });
+}
 
 export async function onRequestOptions() {
   return new Response(null, { headers: CORS_HEADERS });
@@ -12,13 +17,13 @@ export async function onRequestPost(context) {
   try {
     const apiKey = context.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      return Response.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500, headers: CORS_HEADERS });
+      return jsonResponse({ error: 'ANTHROPIC_API_KEY not configured' }, 500);
     }
 
     const { domain, exemplars, prompt, style, count = 3 } = await context.request.json();
 
     if (!exemplars || !prompt) {
-      return Response.json({ error: 'exemplars and prompt are required' }, { status: 400, headers: CORS_HEADERS });
+      return jsonResponse({ error: 'exemplars and prompt are required' }, 400);
     }
 
     const exemplarText = exemplars
@@ -70,29 +75,28 @@ Generate ${count} new document(s) in ${style} style that would fit in this seman
 
     if (!resp.ok) {
       const errBody = await resp.text();
-      return Response.json(
+      return jsonResponse(
         { error: `Anthropic API error: ${resp.status}`, details: errBody },
-        { status: resp.status, headers: CORS_HEADERS }
+        resp.status
       );
     }
 
     const data = await resp.json();
     const text = data.content[0].text;
 
-    // Parse JSON from response (handle potential markdown wrapping)
     let parsed;
     try {
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
     } catch {
-      return Response.json(
+      return jsonResponse(
         { error: 'Failed to parse generation response as JSON', raw: text },
-        { status: 500, headers: CORS_HEADERS }
+        500
       );
     }
 
-    return Response.json(parsed, { headers: CORS_HEADERS });
+    return jsonResponse(parsed);
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500, headers: CORS_HEADERS });
+    return jsonResponse({ error: err.message }, 500);
   }
 }

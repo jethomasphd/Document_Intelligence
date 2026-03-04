@@ -98,7 +98,7 @@ export default function Generator() {
   const verifyCandidate = async (idx) => {
     const candidate = candidates[idx];
     try {
-      const embResp = await embed({ texts: [candidate.content], model: corpus.embeddingModel || 'voyage-3-lite' });
+      const embResp = await embed({ texts: [candidate.content], model: corpus.embeddingModel || 'voyage-3.5-lite' });
       const embedding = embResp.embeddings[0];
       const sim = cosineSimilarity(embedding, zoneCenter);
 

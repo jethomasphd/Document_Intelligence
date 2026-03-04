@@ -134,8 +134,8 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
           onChange={(e) => setConfig((prev) => ({ ...prev, embeddingModel: e.target.value }))}
           className="bg-bg-raised border border-border-line rounded px-3 py-2 text-text-primary"
         >
-          <option value="voyage-3-lite">voyage-3-lite (1024d, faster)</option>
-          <option value="voyage-3">voyage-3 (1024d, higher quality)</option>
+          <option value="voyage-3.5-lite">voyage-3.5-lite (1024d, faster)</option>
+          <option value="voyage-3.5">voyage-3.5 (1024d, higher quality)</option>
         </select>
       </div>
 
