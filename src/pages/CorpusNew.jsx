@@ -15,7 +15,7 @@ export default function CorpusNew() {
     domain: '',
     fieldMap: { id: '', content: '', title: '', category: '' },
     categories: [],
-    embeddingModel: 'voyage-3-lite',
+    embeddingModel: 'voyage-3.5-lite',
   });
 
   return (

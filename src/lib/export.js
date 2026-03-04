@@ -37,7 +37,7 @@ export function exportReportMarkdown(corpus, sections = {}) {
     `**Domain:** ${corpus.domain || 'Not specified'}`,
     `**Documents:** ${corpus.documents.length}`,
     `**Categories:** ${corpus.categories?.map((c) => c.name).join(', ') || 'None'}`,
-    `**Embedding Model:** ${corpus.embeddingModel || 'voyage-3-lite'}`,
+    `**Embedding Model:** ${corpus.embeddingModel || 'voyage-3.5-lite'}`,
     `**Exported:** ${new Date().toISOString()}`,
     '',
   ];

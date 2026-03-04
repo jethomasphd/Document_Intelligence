@@ -2,7 +2,12 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
+  'Content-Type': 'application/json',
 };
+
+function jsonResponse(body, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: CORS_HEADERS });
+}
 
 export async function onRequestOptions() {
   return new Response(null, { headers: CORS_HEADERS });
@@ -12,13 +17,13 @@ export async function onRequestPost(context) {
   try {
     const apiKey = context.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      return Response.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500, headers: CORS_HEADERS });
+      return jsonResponse({ error: 'ANTHROPIC_API_KEY not configured' }, 500);
     }
 
     const { populationA, populationB, avgSimilarity, domain } = await context.request.json();
 
     if (!populationA || !populationB) {
-      return Response.json({ error: 'populationA and populationB are required' }, { status: 400, headers: CORS_HEADERS });
+      return jsonResponse({ error: 'populationA and populationB are required' }, 400);
     }
 
     const systemPrompt = `You are a corpus analysis expert. Analyze two document populations and provide insights about their semantic relationship, similarities, differences, and potential explanations. Be specific and data-driven in your analysis. Keep your response under 400 words.`;
@@ -56,17 +61,17 @@ Provide a narrative analysis of:
 
     if (!resp.ok) {
       const errBody = await resp.text();
-      return Response.json(
+      return jsonResponse(
         { error: `Anthropic API error: ${resp.status}`, details: errBody },
-        { status: resp.status, headers: CORS_HEADERS }
+        resp.status
       );
     }
 
     const data = await resp.json();
     const analysis = data.content[0].text;
 
-    return Response.json({ analysis }, { headers: CORS_HEADERS });
+    return jsonResponse({ analysis });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500, headers: CORS_HEADERS });
+    return jsonResponse({ error: err.message }, 500);
   }
 }

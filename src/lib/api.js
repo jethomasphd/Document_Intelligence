@@ -16,7 +16,7 @@ async function post(path, body) {
   return data;
 }
 
-export async function embed({ texts, model = 'voyage-3-lite' }) {
+export async function embed({ texts, model = 'voyage-3.5-lite' }) {
   return post('/api/embed', { texts, model });
 }
 

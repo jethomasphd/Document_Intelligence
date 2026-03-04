@@ -2,7 +2,12 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
+  'Content-Type': 'application/json',
 };
+
+function jsonResponse(body, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: CORS_HEADERS });
+}
 
 export async function onRequestOptions() {
   return new Response(null, { headers: CORS_HEADERS });
@@ -12,13 +17,13 @@ export async function onRequestPost(context) {
   try {
     const apiKey = context.env.VOYAGE_API_KEY;
     if (!apiKey) {
-      return Response.json({ error: 'VOYAGE_API_KEY not configured' }, { status: 500, headers: CORS_HEADERS });
+      return jsonResponse({ error: 'VOYAGE_API_KEY not configured' }, 500);
     }
 
-    const { texts, model = 'voyage-3-lite' } = await context.request.json();
+    const { texts, model = 'voyage-3.5-lite' } = await context.request.json();
 
     if (!texts || !Array.isArray(texts) || texts.length === 0) {
-      return Response.json({ error: 'texts must be a non-empty array' }, { status: 400, headers: CORS_HEADERS });
+      return jsonResponse({ error: 'texts must be a non-empty array' }, 400);
     }
 
     const CHUNK_SIZE = 128;
@@ -41,9 +46,9 @@ export async function onRequestPost(context) {
 
       if (!resp.ok) {
         const errBody = await resp.text();
-        return Response.json(
+        return jsonResponse(
           { error: `Voyage API error: ${resp.status}`, details: errBody },
-          { status: resp.status, headers: CORS_HEADERS }
+          resp.status
         );
       }
 
@@ -52,8 +57,8 @@ export async function onRequestPost(context) {
       allEmbeddings.push(...embeddings);
     }
 
-    return Response.json({ embeddings: allEmbeddings }, { headers: CORS_HEADERS });
+    return jsonResponse({ embeddings: allEmbeddings });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500, headers: CORS_HEADERS });
+    return jsonResponse({ error: err.message }, 500);
   }
 }

@@ -2,7 +2,12 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
+  'Content-Type': 'application/json',
 };
+
+function jsonResponse(body, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: CORS_HEADERS });
+}
 
 export async function onRequestOptions() {
   return new Response(null, { headers: CORS_HEADERS });
@@ -12,13 +17,13 @@ export async function onRequestPost(context) {
   try {
     const apiKey = context.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      return Response.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500, headers: CORS_HEADERS });
+      return jsonResponse({ error: 'ANTHROPIC_API_KEY not configured' }, 500);
     }
 
     const { content, context: docContext } = await context.request.json();
 
     if (!content) {
-      return Response.json({ error: 'content is required' }, { status: 400, headers: CORS_HEADERS });
+      return jsonResponse({ error: 'content is required' }, 400);
     }
 
     const systemPrompt = `You are a precise document summarizer. Provide a concise summary of the given document content. Focus on key themes, topics, and distinguishing characteristics. Keep the summary under 200 words.`;
@@ -44,17 +49,17 @@ export async function onRequestPost(context) {
 
     if (!resp.ok) {
       const errBody = await resp.text();
-      return Response.json(
+      return jsonResponse(
         { error: `Anthropic API error: ${resp.status}`, details: errBody },
-        { status: resp.status, headers: CORS_HEADERS }
+        resp.status
       );
     }
 
     const data = await resp.json();
     const summary = data.content[0].text;
 
-    return Response.json({ summary }, { headers: CORS_HEADERS });
+    return jsonResponse({ summary });
   } catch (err) {
-    return Response.json({ error: err.message }, { status: 500, headers: CORS_HEADERS });
+    return jsonResponse({ error: err.message }, 500);
   }
 }
