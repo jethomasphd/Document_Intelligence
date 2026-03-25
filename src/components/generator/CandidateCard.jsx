@@ -1,9 +1,21 @@
 import clsx from 'clsx';
 
 const BADGE = {
-  'on-target': { label: 'On Target', color: 'bg-success text-bg-primary' },
-  'adjacent': { label: 'Adjacent', color: 'bg-warning text-bg-primary' },
-  'off-target': { label: 'Off Target', color: 'bg-error text-bg-primary' },
+  'on-target': {
+    label: 'On Target',
+    color: 'bg-success text-bg-primary',
+    description: 'Landed within the target zone (>0.8 similarity)',
+  },
+  adjacent: {
+    label: 'Adjacent',
+    color: 'bg-warning text-bg-primary',
+    description: 'Close to the target zone (0.6-0.8 similarity)',
+  },
+  'off-target': {
+    label: 'Off Target',
+    color: 'bg-error text-bg-primary',
+    description: 'Landed outside the target zone (<0.6 similarity)',
+  },
 };
 
 export default function CandidateCard({ candidate, onVerify, onAccept }) {
@@ -13,12 +25,15 @@ export default function CandidateCard({ candidate, onVerify, onAccept }) {
         <h4 className="text-text-primary font-medium">{candidate.title || 'Untitled'}</h4>
         <div className="flex items-center gap-2">
           {candidate.placement && (
-            <span className={clsx('text-xs px-2 py-0.5 rounded font-medium', BADGE[candidate.placement]?.color)}>
+            <span
+              className={clsx('text-xs px-2 py-0.5 rounded font-medium', BADGE[candidate.placement]?.color)}
+              title={BADGE[candidate.placement]?.description}
+            >
               {BADGE[candidate.placement]?.label}
             </span>
           )}
           {candidate.similarity !== undefined && (
-            <span className="text-xs text-text-muted font-mono">
+            <span className="text-xs text-text-muted font-mono" title="Cosine similarity to the zone centroid">
               sim: {candidate.similarity.toFixed(3)}
             </span>
           )}
@@ -30,11 +45,14 @@ export default function CandidateCard({ candidate, onVerify, onAccept }) {
       </div>
 
       {candidate.rationale && (
-        <p className="text-text-muted text-xs mb-3 italic">{candidate.rationale}</p>
+        <p className="text-text-muted text-xs mb-3 italic">
+          <span className="text-text-muted/70 not-italic font-medium">Why it fits: </span>
+          {candidate.rationale}
+        </p>
       )}
 
-      <div className="flex gap-2">
-        {!candidate.verified && (
+      <div className="flex gap-2 items-center">
+        {!candidate.verified && !candidate.accepted && (
           <button
             onClick={onVerify}
             className="border border-accent-cyan text-accent-cyan px-4 py-1.5 rounded text-sm hover:bg-accent-cyan/10 transition-colors"
@@ -52,6 +70,11 @@ export default function CandidateCard({ candidate, onVerify, onAccept }) {
         )}
         {candidate.accepted && (
           <span className="text-success text-sm font-medium">Added to corpus</span>
+        )}
+        {!candidate.verified && !candidate.accepted && (
+          <span className="text-text-muted text-xs ml-2">
+            Embeds the text and checks where it lands on the semantic map
+          </span>
         )}
       </div>
     </div>

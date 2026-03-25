@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import InfoHint from '../ui/InfoHint';
 
 const CATEGORY_COLORS = ['#00d4ff', '#f0a500', '#10b981', '#a855f7', '#f43f5e', '#3b82f6', '#84cc16', '#fb923c'];
 
@@ -40,7 +41,10 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
           />
         </div>
         <div>
-          <label className="block text-sm text-text-muted mb-1">Domain (what kind of documents are these?)</label>
+          <label className="block text-sm text-text-muted mb-1">
+            Domain
+            <InfoHint text="Describe what these documents are (e.g., 'email subject lines', 'product descriptions'). This helps Claude generate better content later." />
+          </label>
           <input
             value={config.domain}
             onChange={(e) => setConfig((prev) => ({ ...prev, domain: e.target.value }))}
@@ -52,7 +56,7 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
 
       <h3 className="text-text-primary font-medium mb-3">Map Columns to Fields</h3>
       <p className="text-text-muted text-sm mb-4">
-        Tell us which columns in your data correspond to each field. <strong>Content</strong> is the text that will be embedded.
+        Tell us which columns in your data correspond to each field. <strong>Content</strong> is the text that will be embedded — this is the only required mapping.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -128,7 +132,10 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
 
       {/* Embedding model */}
       <div className="mb-6">
-        <label className="block text-sm text-text-muted mb-1">Embedding Model</label>
+        <label className="block text-sm text-text-muted mb-1">
+          Embedding Model
+          <InfoHint text="voyage-3.5-lite is faster and cheaper. voyage-3.5 produces higher quality embeddings. Both output 1024-dimensional vectors." />
+        </label>
         <select
           value={config.embeddingModel}
           onChange={(e) => setConfig((prev) => ({ ...prev, embeddingModel: e.target.value }))}
