@@ -105,7 +105,7 @@ Generate ${count} new document(s) in ${style} style that would fit in this seman
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 8192,
+      max_tokens: 16384,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     }),
@@ -184,7 +184,7 @@ Never ask for more information. Never say the content is incomplete. Work with e
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 512,
+      max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     }),
@@ -235,7 +235,7 @@ Provide a narrative analysis of:
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
+      max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     }),
