@@ -9,7 +9,14 @@ async function post(path, body) {
     body: JSON.stringify(body),
   });
 
-  const data = await resp.json();
+  const text = await resp.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`Invalid JSON from ${path} (${resp.status}): ${text.slice(0, 200)}`);
+  }
 
   if (!resp.ok) {
     throw new Error(data.error || `API error: ${resp.status}`);
