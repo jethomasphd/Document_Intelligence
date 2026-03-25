@@ -103,26 +103,34 @@ export default function Generator() {
         count: GENERATE_COUNT,
       });
 
-      const allRaw = resp.candidates || [];
+      const allRaw = (resp.candidates || []).filter((c) => c && c.content);
       if (allRaw.length === 0) {
         throw new Error('Claude returned no candidates. Try rephrasing your prompt.');
       }
 
       // Step 2: Embed all candidates
       setGenStatus(`Embedding ${allRaw.length} candidates into semantic space...`);
-      const texts = allRaw.map((c) => c.content).filter(Boolean);
-      if (texts.length === 0) {
-        throw new Error('All candidates had empty content.');
-      }
+      const texts = allRaw.map((c) => c.content);
       const embResp = await embed({ texts, model: corpus.embeddingModel || 'voyage-3.5-lite' });
 
       // Step 3: Score all against zone center and project onto map
       setGenStatus('Projecting into semantic space and ranking...');
       const embeddings = embResp.embeddings || [];
-      const scoreable = allRaw.slice(0, embeddings.length);
-      const scored = scoreable.map((c, i) => {
+      if (embeddings.length === 0) {
+        throw new Error('Embedding API returned no results. Try again.');
+      }
+      const scored = [];
+      for (let i = 0; i < Math.min(allRaw.length, embeddings.length); i++) {
+        const c = allRaw[i];
         const embedding = embeddings[i];
-        const sim = cosineSimilarity(embedding, zoneCenter);
+        if (!embedding || !Array.isArray(embedding)) continue;
+
+        let sim = 0;
+        try {
+          sim = cosineSimilarity(embedding, Array.from(zoneCenter));
+        } catch {
+          continue;
+        }
 
         let placement;
         if (sim > 0.8) placement = 'on-target';
@@ -133,13 +141,15 @@ export default function Generator() {
         if (corpus.umapModel) {
           try {
             const projected = transformNew(corpus.umapModel, [embedding]);
-            coords = projected[0];
+            if (projected && projected[0] && Array.isArray(projected[0]) && projected[0].length >= 2 && isFinite(projected[0][0])) {
+              coords = projected[0];
+            }
           } catch {
-            // transform may fail
+            // transform may fail for old corpora without PCA data
           }
         }
 
-        return {
+        scored.push({
           ...c,
           id: `gen_${Date.now()}_${i}`,
           embedding,
@@ -149,10 +159,13 @@ export default function Generator() {
           verified: true,
           rank: 0,
           accepted: false,
-        };
-      });
+        });
+      }
 
       // Step 4: Sort by similarity, take top 5
+      if (scored.length === 0) {
+        throw new Error('Could not score any candidates. The embedding or projection step failed. Try again.');
+      }
       scored.sort((a, b) => b.similarity - a.similarity);
       scored.forEach((c, i) => { c.rank = i + 1; });
 
