@@ -113,6 +113,11 @@ export default function Comparator() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="flex items-center gap-4 mb-6">
+        <Link to={`/corpus/${id}/explore`} className="text-text-muted text-sm no-underline hover:text-accent-cyan transition-colors">&larr; Back to Map</Link>
+        <span className="text-border-line">|</span>
+        <Link to="/home" className="text-text-muted text-sm no-underline hover:text-accent-cyan transition-colors">Home</Link>
+      </div>
       <h1 className="text-2xl font-semibold text-text-primary mb-2">Population Comparator</h1>
       <p className="text-text-muted mb-6">
         How similar are two document categories? For each document in Population A, this finds the 25 nearest neighbors in Population B and measures cosine similarity &mdash; revealing where populations overlap and where they diverge.

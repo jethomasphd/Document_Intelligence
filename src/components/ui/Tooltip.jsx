@@ -19,7 +19,7 @@ export default function Tooltip({ text, children, position = 'top' }) {
       {children}
       {visible && (
         <span
-          className={`absolute z-50 px-2.5 py-1.5 text-xs text-text-primary bg-bg-raised border border-border-line rounded shadow-lg whitespace-normal max-w-xs pointer-events-none ${posClasses[position]}`}
+          className={`absolute z-50 px-3 py-2 text-sm text-text-primary bg-bg-raised border border-border-line rounded-lg shadow-lg whitespace-normal w-80 pointer-events-none leading-relaxed ${posClasses[position]}`}
         >
           {text}
         </span>

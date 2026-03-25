@@ -35,11 +35,12 @@ export default function SemanticMap({ corpus, setCorpus }) {
     setComputing(false);
   };
 
-  const { traces, allIndices } = useMemo(() => {
-    if (!corpus?.coords2d) return { traces: [], allIndices: [] };
+  const selectedPoint = useStore((s) => s.selectedPoint);
+
+  const traces = useMemo(() => {
+    if (!corpus?.coords2d) return [];
 
     const categoryMap = {};
-    const allIdx = [];
 
     corpus.documents.forEach((doc, i) => {
       const cat = doc.category || 'Uncategorized';
@@ -51,7 +52,6 @@ export default function SemanticMap({ corpus, setCorpus }) {
       );
       categoryMap[cat].ids.push(doc.id);
       categoryMap[cat].indices.push(i);
-      allIdx.push(i);
     });
 
     const catNames = Object.keys(categoryMap);
@@ -62,25 +62,46 @@ export default function SemanticMap({ corpus, setCorpus }) {
       });
     }
 
-    return {
-      traces: catNames.map((cat, ci) => ({
-        x: categoryMap[cat].x,
-        y: categoryMap[cat].y,
-        text: categoryMap[cat].text,
-        customdata: categoryMap[cat].indices,
-        type: 'scatter',
-        mode: 'markers',
-        name: cat,
-        hoverinfo: 'text',
-        marker: {
-          color: colorAssignment[cat] || PLOT_COLORS[ci % PLOT_COLORS.length],
-          size: 6,
-          opacity: 0.8,
-        },
-      })),
-      allIndices: allIdx,
-    };
-  }, [corpus?.coords2d, corpus?.documents, corpus?.categories]);
+    const result = catNames.map((cat, ci) => ({
+      x: categoryMap[cat].x,
+      y: categoryMap[cat].y,
+      text: categoryMap[cat].text,
+      customdata: categoryMap[cat].indices,
+      type: 'scatter',
+      mode: 'markers',
+      name: cat,
+      hoverinfo: 'text',
+      marker: {
+        color: colorAssignment[cat] || PLOT_COLORS[ci % PLOT_COLORS.length],
+        size: 6,
+        opacity: 0.8,
+      },
+    }));
+
+    // Highlight selected point with a red ring
+    if (selectedPoint) {
+      const idx = corpus.documents.findIndex((d) => d.id === selectedPoint.id);
+      if (idx >= 0 && corpus.coords2d[idx]) {
+        result.push({
+          x: [corpus.coords2d[idx][0]],
+          y: [corpus.coords2d[idx][1]],
+          text: [`<b>SELECTED:</b> ${selectedPoint.title || selectedPoint.id}`],
+          type: 'scatter',
+          mode: 'markers',
+          name: 'Selected',
+          hoverinfo: 'text',
+          showlegend: false,
+          marker: {
+            color: 'rgba(0,0,0,0)',
+            size: 16,
+            line: { color: '#ef4444', width: 3 },
+          },
+        });
+      }
+    }
+
+    return result;
+  }, [corpus?.coords2d, corpus?.documents, corpus?.categories, selectedPoint]);
 
   if (computing) {
     return (

@@ -29,8 +29,8 @@ export async function embed({ texts, model = 'voyage-3.5-lite' }) {
   return post('/api/embed', { texts, model });
 }
 
-export async function summarize({ content, context }) {
-  return post('/api/summarize', { content, context });
+export async function summarize({ content, context, title, category, neighbors }) {
+  return post('/api/summarize', { content, context, title, category, neighbors });
 }
 
 export async function generate({ domain, exemplars, prompt, style, count }) {

@@ -40,9 +40,11 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
     }));
 
     // Add candidate points - split into accepted (stars) and others (circles)
-    if (candidates.length > 0) {
-      const accepted = candidates.filter((c) => c.accepted);
-      const others = candidates.filter((c) => !c.accepted);
+    // Filter to only candidates with valid coords
+    const validCandidates = candidates.filter((c) => c.coords && Array.isArray(c.coords) && c.coords.length >= 2);
+    if (validCandidates.length > 0) {
+      const accepted = validCandidates.filter((c) => c.accepted);
+      const others = validCandidates.filter((c) => !c.accepted);
 
       if (accepted.length > 0) {
         corpusTraces.push({

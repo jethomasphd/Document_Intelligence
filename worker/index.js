@@ -134,13 +134,25 @@ async function handleSummarize(request, env) {
   const apiKey = env.ANTHROPIC_API_KEY;
   if (!apiKey) return json({ error: 'ANTHROPIC_API_KEY not configured' }, 500);
 
-  const { content, context: docContext } = await request.json();
+  const { content, context: docContext, title, category, neighbors } = await request.json();
   if (!content) return json({ error: 'content is required' }, 400);
 
-  const systemPrompt = `You are a precise document summarizer. Provide a concise summary of the given document content. Focus on key themes, topics, and distinguishing characteristics. Keep the summary under 200 words.`;
-  const userMessage = docContext
-    ? `Context: ${docContext}\n\nDocument:\n${content}`
-    : `Document:\n${content}`;
+  const systemPrompt = `You are a precise document analyst working within a semantic corpus analysis tool. The user has selected a document from their corpus and wants to understand it better.
+
+Your job is to analyze the document based on what is provided. The document may be very short (a subject line, a tweet, a headline) or very long (a full article, a report). Adapt your analysis to fit the content length.
+
+For short documents (under 50 words): Analyze the language choices, tone, implied audience, and semantic positioning. What is this text trying to accomplish? What makes it distinctive?
+
+For longer documents: Summarize key themes, topics, and distinguishing characteristics.
+
+Never ask for more information. Never say the content is incomplete. Work with exactly what you are given. Keep your response under 200 words.`;
+
+  let userMessage = '';
+  if (docContext) userMessage += `Corpus domain: ${docContext}\n`;
+  if (title) userMessage += `Document title: ${title}\n`;
+  if (category) userMessage += `Category: ${category}\n`;
+  if (neighbors) userMessage += `Nearest semantic neighbors: ${neighbors}\n`;
+  userMessage += `\nDocument content:\n${content}`;
 
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',

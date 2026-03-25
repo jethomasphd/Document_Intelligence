@@ -200,18 +200,43 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
 
       {/* Embedding model */}
       <div className="mb-8">
-        <label className="block text-sm text-text-muted mb-1">
-          Embedding Model
-          <InfoHint text="voyage-3.5-lite is faster and cheaper \u2014 good for exploration. voyage-3.5 produces higher-quality embeddings \u2014 better for production analysis. Both output 1024-dimensional vectors." />
-        </label>
-        <select
-          value={config.embeddingModel}
-          onChange={(e) => setConfig((prev) => ({ ...prev, embeddingModel: e.target.value }))}
-          className="bg-bg-raised border border-border-line rounded px-3 py-2 text-text-primary"
-        >
-          <option value="voyage-3.5-lite">voyage-3.5-lite (1024d, faster, lower cost)</option>
-          <option value="voyage-3.5">voyage-3.5 (1024d, higher quality)</option>
-        </select>
+        <label className="block text-sm text-text-muted mb-2">Embedding Model</label>
+        <div className="space-y-2">
+          <label className={`flex gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${config.embeddingModel === 'voyage-3.5-lite' ? 'border-accent-cyan bg-accent-cyan/5' : 'border-border-line bg-bg-raised hover:border-border-line/80'}`}>
+            <input
+              type="radio"
+              name="embeddingModel"
+              value="voyage-3.5-lite"
+              checked={config.embeddingModel === 'voyage-3.5-lite'}
+              onChange={(e) => setConfig((prev) => ({ ...prev, embeddingModel: e.target.value }))}
+              className="accent-accent-cyan mt-0.5"
+            />
+            <div>
+              <div className="text-text-primary font-medium text-sm">voyage-3.5-lite <span className="text-text-muted font-normal">(recommended for most use cases)</span></div>
+              <p className="text-text-muted text-xs leading-relaxed mt-1">
+                Fast and cost-effective. Best for short-to-medium documents: email subject lines, tweets, product titles, headlines, social media posts.
+                Also the right choice for large corpora (1,000+ documents) where embedding speed matters. 1,024 dimensions.
+              </p>
+            </div>
+          </label>
+          <label className={`flex gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${config.embeddingModel === 'voyage-3.5' ? 'border-accent-cyan bg-accent-cyan/5' : 'border-border-line bg-bg-raised hover:border-border-line/80'}`}>
+            <input
+              type="radio"
+              name="embeddingModel"
+              value="voyage-3.5"
+              checked={config.embeddingModel === 'voyage-3.5'}
+              onChange={(e) => setConfig((prev) => ({ ...prev, embeddingModel: e.target.value }))}
+              className="accent-accent-cyan mt-0.5"
+            />
+            <div>
+              <div className="text-text-primary font-medium text-sm">voyage-3.5 <span className="text-text-muted font-normal">(higher fidelity)</span></div>
+              <p className="text-text-muted text-xs leading-relaxed mt-1">
+                Higher-quality semantic representations. Best for complex, nuanced documents: research papers, book chapters, legal contracts, technical documentation, long-form articles.
+                Takes longer to process but captures subtle distinctions that the lite model may miss. 1,024 dimensions.
+              </p>
+            </div>
+          </label>
+        </div>
       </div>
 
       <div className="flex gap-3">

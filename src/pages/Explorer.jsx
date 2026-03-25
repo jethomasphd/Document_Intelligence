@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import useStore from '../store';
 import { getCorpus } from '../lib/storage';
-import { exportCorpusJSON } from '../lib/export';
+import { exportCorpusCSV, exportCorpusJSON } from '../lib/export';
 import SemanticMap from '../components/explorer/SemanticMap';
 import PointInspector from '../components/explorer/PointInspector';
 import SearchBar from '../components/explorer/SearchBar';
@@ -67,13 +67,22 @@ export default function Explorer() {
               Generate
             </Link>
           </Tooltip>
-          <Tooltip text="Download your full corpus as JSON including embeddings. Use for backup, sharing, or importing into Python/R for further analysis." position="bottom">
-            <button
-              onClick={() => exportCorpusJSON(corpus)}
-              className="text-text-muted text-sm hover:text-accent-cyan transition-colors"
-            >
-              Export
-            </button>
+          <Tooltip text="Export your corpus as CSV (documents only) or JSON (includes embeddings for Python/R import)." position="bottom">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => exportCorpusCSV(corpus)}
+                className="text-text-muted text-sm hover:text-accent-cyan transition-colors"
+              >
+                Export CSV
+              </button>
+              <span className="text-border-line">|</span>
+              <button
+                onClick={() => exportCorpusJSON(corpus)}
+                className="text-text-muted text-sm hover:text-accent-cyan transition-colors"
+              >
+                JSON
+              </button>
+            </div>
           </Tooltip>
         </div>
       </div>
