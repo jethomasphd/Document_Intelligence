@@ -105,7 +105,7 @@ Generate ${count} new document(s) in ${style} style that would fit in this seman
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     }),
@@ -124,7 +124,28 @@ Generate ${count} new document(s) in ${style} style that would fit in this seman
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
   } catch {
-    return json({ error: 'Failed to parse generation response as JSON', raw: text }, 500);
+    // Try to salvage truncated JSON by finding complete candidate objects
+    try {
+      const partialMatch = text.match(/\{[\s\S]*"candidates"\s*:\s*\[/);
+      if (partialMatch) {
+        // Find all complete candidate objects
+        const candidatePattern = /\{\s*"title"\s*:\s*"[^"]*"\s*,\s*"content"\s*:\s*"[^"]*"\s*,\s*"rationale"\s*:\s*"[^"]*"\s*\}/g;
+        const candidates = [];
+        let match;
+        while ((match = candidatePattern.exec(text)) !== null) {
+          try { candidates.push(JSON.parse(match[0])); } catch { /* skip */ }
+        }
+        if (candidates.length > 0) {
+          parsed = { candidates };
+        } else {
+          return json({ error: 'Failed to parse generation response', raw: text.slice(0, 500) }, 500);
+        }
+      } else {
+        return json({ error: 'Failed to parse generation response', raw: text.slice(0, 500) }, 500);
+      }
+    } catch {
+      return json({ error: 'Failed to parse generation response', raw: text.slice(0, 500) }, 500);
+    }
   }
 
   return json(parsed);

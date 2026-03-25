@@ -194,8 +194,11 @@ export default function Generator() {
       setStep(2);
       setGenStatus('');
     } catch (e) {
-      alert('Generation failed: ' + e.message);
+      console.error('Generation error:', e);
       setGenStatus('');
+      setCandidates([]);
+      setStep(1);
+      alert('Generation failed: ' + (e.message || 'Unknown error. Check the console for details.'));
     }
     setGenerating(false);
   };
