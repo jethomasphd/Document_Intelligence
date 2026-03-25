@@ -10,6 +10,7 @@ import TargetZone from '../components/generator/TargetZone';
 import CandidateCard from '../components/generator/CandidateCard';
 import InfoHint from '../components/ui/InfoHint';
 import StepGuide from '../components/ui/StepGuide';
+import ErrorBoundary from '../components/ui/ErrorBoundary';
 
 const GUIDES = [
   {
@@ -150,7 +151,9 @@ export default function Generator() {
         }
 
         scored.push({
-          ...c,
+          title: c.title || 'Untitled',
+          content: c.content || '',
+          rationale: c.rationale || '',
           id: `gen_${Date.now()}_${i}`,
           embedding,
           similarity: sim,
@@ -359,6 +362,7 @@ export default function Generator() {
 
       {/* Results section */}
       {step === 2 && candidates.length > 0 && (
+        <ErrorBoundary>
         <div className="mt-8">
           {/* Success summary */}
           <div className="bg-bg-surface border border-success/30 rounded-lg p-6 mb-6">
@@ -425,6 +429,7 @@ export default function Generator() {
             ))}
           </div>
         </div>
+        </ErrorBoundary>
       )}
     </div>
   );
