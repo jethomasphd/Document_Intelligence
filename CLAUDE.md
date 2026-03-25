@@ -35,7 +35,7 @@ npm run lint         # ESLint
 ## Important Notes
 - All heavy computation (UMAP, PCA, KNN) runs client-side in the browser
 - Embeddings are base64-encoded Float32Arrays in IndexedDB for storage efficiency
-- Generator flow: generates 25 candidates → embeds all → ranks by cosine similarity → auto-accepts top 5
+- Generator flow: generates 10 candidates → embeds all → ranks by cosine similarity → auto-accepts top 5
 - Corpus JSON export includes embeddings (full 1024-dim vectors)
 - The `umapModel` stored on corpus includes PCA model data for projecting new points
 - `functions/` directory was removed — all API logic lives in `worker/index.js`
