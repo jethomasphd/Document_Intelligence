@@ -24,41 +24,95 @@ This is not search. This is not summarization. This is **spatial reasoning over 
 
 ## What It Does
 
+### Cinematic Entry
+First-time visitors experience a three-stage cinematic reveal that frames the core insight: your documents have a hidden geometric structure, and this tool makes it visible.
+
+### Home Dashboard
+The dashboard orients you with a workflow overview (Upload → Explore → Compare & Generate), key concept definitions (semantic embedding, cosine similarity, UMAP projection, target zone), and quick access to your corpus library.
+
 ### 1. Corpus Builder
 Upload your document collection and transform it into an explorable semantic space.
 
-- **Accepts** CSV, JSON, or plain text files
-- **Maps** your columns to the document schema (content, title, category, ID)
-- **Embeds** every document using Voyage AI's neural embedding models
+- **Accepts** CSV, JSON, or plain text files (with expandable data format specifications)
+- **Maps** your columns to the document schema with rich explanations:
+  - **ID** — A unique identifier: document number, transaction hash, ISBN, SKU
+  - **Content** — The actual body text that gets embedded: email body, book chapter, product description
+  - **Title** — A short display label: book title, email subject, page name
+  - **Category** — High-level taxonomy: fiction vs. non-fiction, department, product line
+- **Pro tip on Category** — Use categories strategically for performance analysis: label top-performing documents (best sellers, highest engagement) as a "Top" category, then use the Comparator to find what semantic patterns distinguish winners, and the Generator to produce more content like your best content
+- **Embeds** every document using Voyage AI (batched, with automatic retry)
 - **Stores** everything locally in your browser (IndexedDB) — your data never hits a database
 
 ### 2. Semantic Explorer
 An interactive 2D scatter plot where every point is a document, positioned by meaning.
 
-- **Color-coded** by category so population structure is immediately visible
-- **Click** any point to inspect the full document, its metadata, and its 15 nearest semantic neighbors
-- **Search** across your entire corpus with real-time text matching
-- **Summarize** any document on demand via Claude
-- **Export** your corpus as JSON, neighbor lists as CSV, or full reports as Markdown
+- **Conceptual guide** explains how to read the map: what dots represent, what colors mean, what clusters indicate, how proximity encodes similarity
+- **Color-coded** by category — tight clusters indicate semantic coherence; intermixed colors show overlap
+- **Category legend** overlay for quick reference
+- **Click** any point to open the Document Inspector:
+  - Full document text and metadata
+  - AI-powered summarization via Claude
+  - **15 nearest neighbors** with color-coded similarity badges (Very Similar, Related, Loosely Related, Distant)
+  - Category filter to see neighbors from specific populations
+  - One-click navigation to the Generator with pre-selected neighborhood
+- **Lasso select** to highlight and inspect regions
+- **Search** by title or content
+- **Export** corpus as JSON (explanatory tooltips describe what each export contains)
 
 ### 3. Population Comparator
 Select two document categories and understand exactly how they relate semantically.
 
+- **Expandable cosine similarity guide** explains the metric with color-coded ranges (0.8–1.0 Very Similar → 0.0–0.3 Unrelated)
 - **Cross-neighborhood analysis**: For every document in Population A, find its 25 nearest neighbors in Population B
-- **Similarity distribution**: A histogram showing where the cross-population similarities concentrate
+- **Color-coded similarity histogram**: bars colored by similarity range (green=high, yellow=moderate, red=low) with labeled axes
 - **AI Insight**: Claude analyzes sample documents from both populations and explains what distinguishes them
-- **Export** all pairwise similarity scores as CSV
+- **Color-coded similarity table**: score colors in the results table match the histogram ranges
+- **Export CSV**: downloadable with explanatory note about what it contains and how to use it
 
 ### 4. Document Generator
 Point to a region on the semantic map and synthesize new documents that belong there.
 
-- **Select a target zone** by clicking a point (uses its neighborhood) or lasso-selecting a region
+- **Persistent target zone**: the zone panel stays visible as a reference throughout the generation process, with reset option
+- **Select a target zone** by clicking a point (uses its 10 nearest neighbors) or lasso-selecting a region (computes centroid)
 - **Configure generation**: describe what you want, choose a style (Formal, Conversational, Urgent, Playful, Minimal, Persuasive), set the count (1-10)
-- **Verify placement**: each generated candidate gets embedded and projected onto the existing map, with a similarity badge showing how close it landed to the target zone
-  - **On Target** (>0.8 cosine similarity to zone centroid)
-  - **Adjacent** (0.6-0.8)
-  - **Off Target** (<0.6)
+- **Iterative generation**: generate multiple rounds — new candidates accumulate. Adjust your prompt between rounds based on results.
+- **Verify All** button to batch-verify candidates
+- **Placement verification**: each candidate gets embedded and projected onto the map
+  - **On Target** (>0.8 cosine similarity to zone centroid) — strong semantic fit
+  - **Adjacent** (0.6-0.8) — close but not centered
+  - **Off Target** (<0.6) — missed the zone
+- **Iteration coaching**: when no candidates hit the target, the UI explains that this is normal and suggests prompt refinement strategies
+- **Candidate stats dashboard**: generated | verified | on target | adjacent | accepted
 - **Accept** verified candidates directly into your corpus
+
+---
+
+## Understanding Cosine Similarity
+
+Cosine similarity is the core metric throughout Document Intelligence. It measures the angle between two document vectors in semantic space, producing a score from 0 to 1:
+
+| Score Range | Label | Meaning |
+|------------|-------|---------|
+| **0.8 – 1.0** | Very Similar | Nearly identical meaning. These documents cover the same topic in the same way. |
+| **0.6 – 0.8** | Related | Same general topic or theme. Strong semantic overlap. |
+| **0.3 – 0.6** | Loosely Related | Some thematic connection but substantially different content. |
+| **0.0 – 0.3** | Unrelated | Different domains or topics entirely. |
+
+Unlike simple word overlap, cosine similarity captures *semantic* relationships. "Revenue growth exceeded projections" and "Fiscal performance surpassed forecasts" score 0.85+ despite sharing zero words. This makes it powerful for discovering non-obvious connections.
+
+---
+
+## Data Exports
+
+Document Intelligence provides several export options:
+
+| Export | Format | What It Contains | Use Case |
+|--------|--------|-----------------|----------|
+| **Corpus JSON** | `.json` | All documents with titles, content, categories (no embeddings) | Backup, share with colleagues, import into other tools |
+| **Neighbors CSV** | `.csv` | Selected document's nearest neighbors with similarity scores | Analyze a specific document's semantic neighborhood in Excel |
+| **Comparison CSV** | `.csv` | All cross-population document pairs with similarity scores | Deep analysis of population overlap in external tools |
+
+Exports are available via buttons in the Explorer (top bar), Document Inspector (neighbor list), and Comparator (results section).
 
 ---
 
@@ -101,7 +155,7 @@ Browser (Client)                          Cloudflare (Edge)
 | State | [Zustand 5](https://zustand.docs.pmnd.rs/) | Lightweight global state management |
 | Visualization | [Plotly.js 3](https://plotly.com/javascript/) | Interactive scatter plots with lasso selection |
 | Storage | [idb-keyval](https://github.com/nicedoc/idb-keyval) | Simple IndexedDB abstraction |
-| Dimensionality Reduction | [umap-js](https://github.com/PAIR-code/umap-js) + [ml-pca](https://github.com/mljs/pca) | 1024D -> 50D (PCA) -> 2D (UMAP) |
+| Dimensionality Reduction | [umap-js](https://github.com/PAIR-code/umap-js) + [ml-pca](https://github.com/mljs/pca) | 1024D → 50D (PCA) → 2D (UMAP) |
 | File Parsing | [Papa Parse](https://www.papaparse.com/) | CSV parsing; native JSON/TXT handling |
 | Embeddings API | [Voyage AI](https://www.voyageai.com/) | voyage-3.5-lite (fast) or voyage-3.5 (quality) |
 | LLM API | [Anthropic Claude](https://www.anthropic.com/) | claude-sonnet-4-6 (generation), claude-haiku-4-5 (summarization) |
@@ -116,72 +170,55 @@ Browser (Client)                          Cloudflare (Edge)
 
 #### Step 1: Create a Corpus
 
-1. Click **+ New Corpus** from the home page
-2. **Upload** a file:
-   - **CSV**: Each row is a document. You'll map columns in the next step.
-   - **JSON**: An array of objects. Same column mapping.
-   - **TXT**: Each line becomes a document automatically.
+1. Click **+ New Corpus** from the home dashboard
+2. **Upload** a file (expandable data format specs are available inline):
+   - **CSV**: Each row is a document. Must have a header row. You'll map columns in the next step.
+   - **JSON**: An array of objects `[{"title": "...", "content": "..."}, ...]`
+   - **TXT**: Each line becomes a separate document automatically.
+   - Best results with 10–10,000 documents. Richer text (10+ words per document) produces better embeddings.
 3. **Configure** your corpus:
    - **Corpus Name**: A label for this collection (e.g., "Q4 Email Subjects")
-   - **Domain**: Describe the document type — this context helps Claude generate better content later
-   - **Content**: Select the column containing the text to embed (required)
-   - **Title**: Select a display label column (optional)
-   - **Category**: Select a column to split documents into populations for comparison (optional)
-   - **Embedding Model**: `voyage-3.5-lite` is faster; `voyage-3.5` is higher quality
-4. **Embed**: The system batches your documents (100 at a time) and sends them to Voyage AI. A progress bar tracks completion. For 1,000 documents, expect about 30-60 seconds.
-
-After embedding completes, you're automatically taken to the Explorer.
+   - **Domain**: Describe the document type — be specific, this context helps Claude later
+   - **Content** (required): The column containing the text to embed — the actual substance of each document
+   - **Title**: A short display label (book title, email subject, page name)
+   - **ID**: A unique identifier (document number, transaction hash, ISBN)
+   - **Category**: The high-level grouping — this is where strategic thinking pays off:
+     - Basic taxonomy: fiction vs. non-fiction, department, product line
+     - **Performance analysis**: Label top performers as a "Top" category, then compare to see what semantic patterns distinguish winners, and generate more content like your best
+   - **Embedding Model**: `voyage-3.5-lite` is faster/cheaper; `voyage-3.5` is higher quality
+4. **Embed**: Documents are batched (100 at a time) with automatic retry on rate limits. ~30-60 seconds for 1,000 documents.
 
 #### Step 2: Explore the Semantic Map
 
-The Explorer is where you spend most of your time. When you first arrive, the system computes a UMAP projection (this can take a few seconds for large corpora).
+The Explorer opens with a conceptual guide banner explaining how to read the map. Key interactions:
 
-**Reading the Map:**
-- Each **point** is a document. Hover to see its title and content preview.
-- **Colors** correspond to categories. Documents of the same type naturally cluster together — this is the geometry of meaning at work.
-- **Clusters** indicate semantic similarity. Tight clusters share strong thematic overlap. Scattered points are semantically diverse.
-- **Bridges** between clusters suggest documents that share aspects of both populations.
-
-**Interacting:**
-- **Click** a point to open the Document Inspector on the right. You'll see the full text, metadata, category, and 15 nearest neighbors ranked by cosine similarity.
-- **Lasso select** by dragging on the map to select a region of points.
-- **Search** using the search bar to find specific documents by title or content.
-- **Summarize** a document by clicking the gold "Summarize" button in the inspector — Claude produces a concise summary.
-- **Jump** to any neighbor in the list to navigate the semantic graph.
-
-**Navigation bar links:**
-- **Compare** — takes you to the Population Comparator for this corpus
-- **Generate** — takes you to the Document Generator
-- **Export** — downloads the corpus as JSON (without embeddings, for portability)
+- **Read the map**: Each dot = a document. Proximity = semantic similarity. Colors = categories. Clusters = shared themes.
+- **Click a point**: Opens the Document Inspector with full text, AI summarization, and 15 nearest neighbors with color-coded similarity badges.
+- **Lasso select**: Drag to select a region of points.
+- **Search**: Find specific documents by title or content.
+- **Navigate neighbors**: Click any neighbor to jump to it — traverse the semantic graph.
+- **Filter**: In the inspector, filter neighbors by category to see cross-population connections.
 
 #### Step 3: Compare Populations
 
-If your corpus has multiple categories, the Comparator reveals how they relate.
-
-1. Select **Population A** and **Population B** from the dropdown menus
-2. Click **Run Analysis**
-3. Review the results:
-   - **Histogram**: Shows the distribution of cross-population cosine similarities. A peak near 1.0 means the populations are semantically similar. A peak near 0.5 means they're quite different.
-   - **Mean Similarity**: The average across all cross-population neighbor pairs.
-   - **AI Insight**: Click the gold button to have Claude analyze sample documents from both populations and explain what distinguishes them — what themes overlap, what diverges, and what the similarity score suggests.
-4. **Export CSV** to download all pairwise similarity scores for further analysis.
+1. Select **Population A** and **Population B**
+2. Click **Run Analysis** — computes cross-neighborhood similarities
+3. Read the **color-coded histogram**: green bars = high similarity pairs, red bars = low similarity pairs
+4. Check the **mean similarity** — above 0.7 means the populations are semantically close
+5. Click **AI Insight** for Claude's analysis of what distinguishes the populations
+6. **Export CSV** for deeper analysis in external tools (Excel, Python, R)
 
 #### Step 4: Generate New Documents
 
-The Generator lets you synthesize new documents that target a specific semantic zone.
+1. **Select a target zone** on the map (click a point or lasso-select)
+2. **Review exemplars** — the target zone panel stays visible as your reference
+3. **Write a specific prompt** — "Write formal product descriptions for enterprise SaaS tools" beats "Write something similar"
+4. **Generate** — Claude produces candidates based on exemplars + prompt
+5. **Verify** each candidate (or use Verify All) — embeds the text and checks where it lands
+6. **Iterate** — if results miss the target, adjust your prompt and generate another round. New candidates accumulate.
+7. **Accept** the best candidates into your corpus
 
-1. **Select a target zone** on the mini-map:
-   - **Click a point** to use its semantic neighborhood (10 nearest neighbors become exemplars)
-   - **Lasso select** a region to use those documents as the zone (centroid computed automatically)
-2. **Review exemplars**: The Target Zone panel shows the documents defining your zone, ranked by similarity to the centroid.
-3. **Write a prompt**: Describe what you want generated. Be specific — "Write formal product descriptions for enterprise SaaS tools" works better than "Write something similar."
-4. **Choose a style**: Formal, Conversational, Urgent, Playful, Minimal, or Persuasive.
-5. **Set count**: How many candidates to generate (1-10).
-6. **Click Generate**: Claude produces candidates based on the exemplars and your prompt.
-7. **Verify each candidate**: Click "Verify Placement" to embed the generated text and see where it actually lands on the semantic map:
-   - A gold star appears on the mini-map showing its projected position
-   - A badge shows similarity to the zone centroid (On Target / Adjacent / Off Target)
-8. **Accept** verified candidates to add them permanently to your corpus.
+**The iteration model**: Generation is probabilistic. Not every candidate will hit the target zone. Generate 5-10 candidates per round, verify all, accept the on-target ones, adjust your prompt, and generate again. The semantic map is your ground truth.
 
 ---
 
@@ -194,11 +231,11 @@ The Generator lets you synthesize new documents that target a specific semantic 
 
 ### 1. Deploy the Worker (API Proxy)
 
-1. In the Cloudflare dashboard, go to **Workers & Pages** > **Create** > **Create Worker**
+1. In the Cloudflare dashboard, go to **Workers & Pages** → **Create** → **Create Worker**
 2. Name it `document-intelligence-api` and click **Deploy**
 3. Click **Edit Code**, delete the placeholder, and paste the contents of `worker/index.js`
 4. Click **Deploy**
-5. Go to the Worker's **Settings** > **Variables and Secrets**
+5. Go to the Worker's **Settings** → **Variables and Secrets**
 6. Add two encrypted variables:
    - `ANTHROPIC_API_KEY` = your Anthropic key
    - `VOYAGE_API_KEY` = your Voyage AI key
@@ -207,7 +244,7 @@ Your Worker URL will be: `https://document-intelligence-api.<your-account>.worke
 
 ### 2. Deploy the Frontend (Cloudflare Pages)
 
-1. Go to **Workers & Pages** > **Create** > **Pages** > **Connect to Git**
+1. Go to **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
 2. Select the `Document_Intelligence` repository
 3. Configure:
    - **Production branch**: `main`
@@ -223,8 +260,6 @@ const API_BASE = import.meta.env.DEV
   ? 'http://localhost:8788'
   : 'https://your-worker-name.your-account.workers.dev';
 ```
-
-Commit, push, and Pages will auto-rebuild.
 
 ### Local Development
 
@@ -249,44 +284,48 @@ npx wrangler pages dev -- npm run dev
 Document_Intelligence/
   src/
     pages/
-      Home.jsx              # Corpus library grid
-      CorpusNew.jsx         # 3-step corpus creation wizard
-      Explorer.jsx          # Semantic map + document inspector
-      Comparator.jsx        # Population cross-analysis
-      Generator.jsx         # Generative document synthesis
+      Landing.jsx            # Cinematic reveal entry experience
+      Home.jsx               # Dashboard with workflow guide + corpus library
+      CorpusNew.jsx          # 3-step corpus creation wizard
+      Explorer.jsx           # Semantic map + document inspector
+      Comparator.jsx         # Population cross-analysis
+      Generator.jsx          # Generative document synthesis
     components/
-      Layout.jsx            # App shell (header, navigation)
+      Layout.jsx             # App shell (header, navigation)
+      ui/
+        Tooltip.jsx           # Hover tooltip component
+        InfoHint.jsx          # (?) contextual help icons
+        StepGuide.jsx         # Step-by-step progress indicator
       corpus/
-        DropZone.jsx         # File upload (CSV/JSON/TXT)
-        FieldMapper.jsx      # Column-to-field mapping
-        EmbedProgress.jsx    # Batch embedding progress bar
+        DropZone.jsx          # File upload with data format specs
+        FieldMapper.jsx       # Column mapping with field explanations
+        EmbedProgress.jsx     # Batch embedding progress bar
       explorer/
-        SemanticMap.jsx      # Plotly 2D scatter plot + UMAP compute
-        PointInspector.jsx   # Document detail + neighbors panel
-        SearchBar.jsx        # Full-text search with results dropdown
+        SemanticMap.jsx       # Plotly 2D scatter plot + UMAP compute
+        PointInspector.jsx    # Document detail + neighbors with similarity badges
+        SearchBar.jsx         # Full-text search with results dropdown
       generator/
-        MiniMap.jsx          # Compact map for zone selection
-        TargetZone.jsx       # Exemplar list panel
-        CandidateCard.jsx    # Generated candidate with verify/accept
+        MiniMap.jsx           # Compact map for zone selection
+        TargetZone.jsx        # Persistent exemplar list with reset
+        CandidateCard.jsx     # Generated candidate with verify/accept
     lib/
-      api.js                # Fetch wrappers for Worker API routes
-      storage.js            # IndexedDB CRUD with binary embedding encoding
-      umap.js               # PCA preprocessing + UMAP projection + transform
-      knn.js                # Cosine similarity, KNN search, zone centroid
-      export.js             # JSON, CSV, Markdown export utilities
+      api.js                 # Fetch wrappers for Worker API routes
+      storage.js             # IndexedDB CRUD with binary embedding encoding
+      umap.js                # PCA preprocessing + UMAP projection + transform
+      knn.js                 # Cosine similarity, KNN search, zone centroid
+      export.js              # JSON, CSV, Markdown export utilities
     store/
-      index.js              # Zustand global state (corpus list, selections, map)
-    main.jsx                # React entry point + routing
-    index.css               # Tailwind directives + dark theme CSS variables
+      index.js               # Zustand global state
+    main.jsx                 # React entry point + routing
+    index.css                # Tailwind directives + dark theme CSS
   worker/
-    index.js                # Cloudflare Worker: API proxy for Voyage + Anthropic
-  public/                   # Static assets
-  index.html                # HTML entry point with font imports
-  package.json              # Dependencies and scripts
-  vite.config.js            # Vite config with code-splitting
-  tailwind.config.js        # Dark theme color palette and fonts
-  wrangler.toml             # Cloudflare Pages configuration
-  eslint.config.js          # ESLint rules
+    index.js                 # Cloudflare Worker: API proxy for Voyage + Anthropic
+  public/                    # Static assets
+  index.html                 # HTML entry point
+  package.json               # Dependencies and scripts
+  vite.config.js             # Vite config with code-splitting
+  tailwind.config.js         # Dark theme color palette and fonts
+  wrangler.toml              # Cloudflare Pages configuration
 ```
 
 ---
@@ -301,6 +340,7 @@ Document_Intelligence/
 | **Customer reviews** by rating | What separates 5-star language from 1-star | Review text targeting a specific sentiment zone |
 | **Job postings** by industry | How industries describe roles differently | Postings that match a target industry's semantic signature |
 | **Research abstracts** by field | Where disciplines overlap; emerging interdisciplinary zones | Abstracts positioned at the boundary of two fields |
+| **Top performers** vs. rest | What semantic patterns distinguish winners | More content like your best-performing documents |
 
 ---
 
