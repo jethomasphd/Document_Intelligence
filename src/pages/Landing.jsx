@@ -15,10 +15,9 @@ export default function Landing() {
 
     const timers = [];
     timers.push(setTimeout(() => setPhase(0), 400));
-    timers.push(setTimeout(() => setPhase(1), 3200));
-    timers.push(setTimeout(() => setPhase(2), 6200));
-    timers.push(setTimeout(() => setPhase(3), 9200));
-    timers.push(setTimeout(() => setShowCTA(true), 11500));
+    timers.push(setTimeout(() => setPhase(1), 2800));
+    timers.push(setTimeout(() => setPhase(2), 5200));
+    timers.push(setTimeout(() => setShowCTA(true), 7000));
     return () => timers.forEach(clearTimeout);
   }, [navigate]);
 
@@ -33,31 +32,16 @@ export default function Landing() {
       onClick={showCTA ? enter : undefined}
     >
       <div className="max-w-2xl text-center space-y-8">
-        {/* Stage 1: Name the pain they don't know they have */}
         <p className={`text-lg md:text-xl text-text-muted leading-relaxed transition-opacity duration-1500 ${phase >= 0 ? 'opacity-100' : 'opacity-0'}`}>
-          You read your documents one at a time.
-          You search them by keyword. You organize them into folders.
-          But you've never actually seen what they mean <em>as a collection</em>.
+          You have thousands of documents, millions of words, and no way to see what they actually mean together.
         </p>
 
-        {/* Stage 2: Reveal the hidden structure */}
         <p className={`text-xl md:text-2xl text-text-primary leading-relaxed font-light transition-opacity duration-1500 ${phase >= 1 ? 'opacity-100' : 'opacity-0'}`}>
-          Your documents have a hidden geometric structure.
-          Similar content clusters together. Gaps between clusters are opportunities.
-          Your best-performing content occupies specific regions — and their neighbors
-          probably perform well too.
+          Your top-performing content lives in specific neighborhoods. The documents closest to your winners are the ones you should be writing next.
         </p>
 
-        {/* Stage 3: What becomes possible */}
-        <p className={`text-xl md:text-2xl text-text-primary leading-relaxed font-light transition-opacity duration-1500 ${phase >= 2 ? 'opacity-100' : 'opacity-0'}`}>
-          What if you could see that structure, compare populations
-          within it, and generate new documents that target
-          exactly where you need them?
-        </p>
-
-        {/* Stage 4: The answer */}
-        <p className={`text-2xl md:text-3xl text-accent-cyan font-semibold transition-opacity duration-1500 ${phase >= 3 ? 'opacity-100' : 'opacity-0'}`}>
-          Now you can.
+        <p className={`text-2xl md:text-3xl text-accent-cyan font-semibold transition-opacity duration-1500 ${phase >= 2 ? 'opacity-100' : 'opacity-0'}`}>
+          See the map. Find the patterns. Generate what's missing.
         </p>
       </div>
 

@@ -18,16 +18,16 @@ const GUIDES = [
   },
   {
     title: 'Describe what you want and generate',
-    description: 'Write a clear prompt and pick a style. The system generates 25 candidates by default, embeds all of them into semantic space, and automatically selects the top 5 closest to your target zone.',
+    description: 'Write a clear prompt and pick a style. The system generates candidates, embeds all of them into semantic space, and automatically selects the top 5 closest to your target zone.',
   },
   {
     title: 'Review results and export',
-    description: 'The top 5 candidates are automatically added to your corpus. All 25 are shown ranked by similarity so you can see the full distribution. Export your results or return to the Explorer to see the updated map.',
+    description: 'The top 5 candidates are automatically added to your corpus. All are shown ranked by similarity so you can see the full distribution. Export your results or return to the Explorer to see the updated map.',
   },
 ];
 
 const STYLES = ['Formal', 'Conversational', 'Urgent', 'Playful', 'Minimal', 'Persuasive'];
-const GENERATE_COUNT = 25;
+const GENERATE_COUNT = 10;
 const AUTO_ACCEPT_COUNT = 5;
 
 export default function Generator() {
@@ -87,41 +87,41 @@ export default function Generator() {
     setCandidates([]);
 
     try {
-      // Step 1: Generate 25 candidates
-      setGenStatus('Generating 25 candidates with Claude...');
+      // Step 1: Generate candidates
+      setGenStatus(`Generating ${GENERATE_COUNT} candidates with Claude...`);
       const exemplarTexts = exemplars.slice(0, 8).map((e) => ({
         title: e.title || e.id,
         content: e.content?.slice(0, 500),
         category: e.category,
       }));
 
-      // Generate in batches if needed (API max is 10 per call)
-      let allRaw = [];
-      const batchSize = 10;
-      const batches = Math.ceil(GENERATE_COUNT / batchSize);
+      const resp = await generate({
+        domain: corpus.domain,
+        exemplars: exemplarTexts,
+        prompt,
+        style,
+        count: GENERATE_COUNT,
+      });
 
-      for (let b = 0; b < batches; b++) {
-        const thisCount = Math.min(batchSize, GENERATE_COUNT - allRaw.length);
-        setGenStatus(`Generating candidates... (${allRaw.length}/${GENERATE_COUNT})`);
-        const resp = await generate({
-          domain: corpus.domain,
-          exemplars: exemplarTexts,
-          prompt,
-          style,
-          count: thisCount,
-        });
-        allRaw.push(...resp.candidates);
+      const allRaw = resp.candidates || [];
+      if (allRaw.length === 0) {
+        throw new Error('Claude returned no candidates. Try rephrasing your prompt.');
       }
 
       // Step 2: Embed all candidates
       setGenStatus(`Embedding ${allRaw.length} candidates into semantic space...`);
-      const texts = allRaw.map((c) => c.content);
+      const texts = allRaw.map((c) => c.content).filter(Boolean);
+      if (texts.length === 0) {
+        throw new Error('All candidates had empty content.');
+      }
       const embResp = await embed({ texts, model: corpus.embeddingModel || 'voyage-3.5-lite' });
 
       // Step 3: Score all against zone center and project onto map
       setGenStatus('Projecting into semantic space and ranking...');
-      const scored = allRaw.map((c, i) => {
-        const embedding = embResp.embeddings[i];
+      const embeddings = embResp.embeddings || [];
+      const scoreable = allRaw.slice(0, embeddings.length);
+      const scored = scoreable.map((c, i) => {
+        const embedding = embeddings[i];
         const sim = cosineSimilarity(embedding, zoneCenter);
 
         let placement;
@@ -211,7 +211,7 @@ export default function Generator() {
     <div className="max-w-6xl mx-auto px-6 py-10">
       <h1 className="text-2xl font-semibold text-text-primary mb-2">Document Generator</h1>
       <p className="text-text-muted mb-6">
-        Point to a semantic zone, generate 25 candidates, and the system automatically embeds all of them,
+        Point to a semantic zone, generate candidates, and the system automatically embeds all of them,
         ranks by proximity to the target zone, and adds the top 5 to your corpus.
       </p>
 
@@ -230,7 +230,7 @@ export default function Generator() {
             {step === 0
               ? 'Click a point or lasso-select a region to define your target zone.'
               : step === 2
-              ? 'All 25 candidates are projected. Gold stars = accepted (top 5). Circles = remaining 20.'
+              ? 'All candidates are projected. Gold stars = accepted (top 5). Gray circles = the rest.'
               : 'Gold stars will show where candidates land after generation.'}
           </p>
         </div>
@@ -293,10 +293,10 @@ export default function Generator() {
                 disabled={generating || !prompt.trim()}
                 className="w-full bg-accent-cyan text-bg-primary py-2.5 rounded font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
               >
-                {generating ? genStatus || 'Processing...' : 'Generate 25 & Auto-Select Top 5'}
+                {generating ? genStatus || 'Processing...' : `Generate ${GENERATE_COUNT} & Auto-Select Top ${AUTO_ACCEPT_COUNT}`}
               </button>
               <p className="text-text-muted text-xs mt-2 text-center">
-                Generates 25 candidates, embeds all into semantic space, and automatically selects the 5 closest to your target zone.
+                Generates {GENERATE_COUNT} candidates, embeds all into semantic space, and automatically selects the {AUTO_ACCEPT_COUNT} closest to your target zone.
               </p>
             </div>
           )}
@@ -348,7 +348,7 @@ export default function Generator() {
               </h2>
             </div>
             <p className="text-text-muted text-sm mb-4">
-              Generated 25 candidates, embedded all into semantic space, and selected the {AUTO_ACCEPT_COUNT} closest to the target zone.
+              Generated {candidates.length} candidates, embedded all into semantic space, and selected the {AUTO_ACCEPT_COUNT} closest to the target zone.
               Your corpus now has <strong className="text-text-primary">{corpus.documents.length}</strong> total documents.
               {onTarget.length > 0 && (
                 <> <span className="text-success font-medium">{onTarget.length} on-target</span> (sim &gt; 0.8).</>
@@ -388,7 +388,7 @@ export default function Generator() {
             </div>
           </div>
 
-          {/* All 25 candidates ranked */}
+          {/* All candidates ranked */}
           <h3 className="text-text-primary font-medium mb-1">All {candidates.length} Candidates Ranked by Similarity</h3>
           <p className="text-text-muted text-xs mb-4">
             Top {AUTO_ACCEPT_COUNT} were automatically accepted into the corpus. All candidates are shown so you can see the full distribution.
