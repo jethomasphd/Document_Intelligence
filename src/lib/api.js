@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.DEV ? 'http://localhost:8788' : '';
+const API_BASE = import.meta.env.DEV
+  ? 'http://localhost:8788'
+  : import.meta.env.VITE_API_URL || '';
 
 async function post(path, body) {
   const resp = await fetch(`${API_BASE}${path}`, {
