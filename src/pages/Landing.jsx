@@ -33,15 +33,15 @@ export default function Landing() {
     >
       <div className="max-w-2xl text-center space-y-8">
         <p className={`text-lg md:text-xl text-text-muted leading-relaxed transition-opacity duration-1500 ${phase >= 0 ? 'opacity-100' : 'opacity-0'}`}>
-          You manage documents one at a time &mdash; but you've never seen what they mean <em>as a collection</em>.
+          You have thousands of documents, millions of words, and no way to see what they actually mean together.
         </p>
 
         <p className={`text-xl md:text-2xl text-text-primary leading-relaxed font-light transition-opacity duration-1500 ${phase >= 1 ? 'opacity-100' : 'opacity-0'}`}>
-          Your best content clusters in specific regions of semantic space. Its neighbors are your next best content &mdash; and the gaps are your biggest opportunities.
+          Your top-performing content lives in specific neighborhoods. The documents closest to your winners are the ones you should be writing next.
         </p>
 
         <p className={`text-2xl md:text-3xl text-accent-cyan font-semibold transition-opacity duration-1500 ${phase >= 2 ? 'opacity-100' : 'opacity-0'}`}>
-          See the structure. Target the gaps. Generate what's missing.
+          See the map. Find the patterns. Generate what's missing.
         </p>
       </div>
 
