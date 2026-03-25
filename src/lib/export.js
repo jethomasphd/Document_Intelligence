@@ -1,3 +1,12 @@
+export function exportCorpusCSV(corpus) {
+  const header = 'id,title,category,content\n';
+  const rows = corpus.documents
+    .map((d) => `"${esc(d.id)}","${esc(d.title || '')}","${esc(d.category || '')}","${esc(d.content || '')}"`)
+    .join('\n');
+
+  downloadFile(header + rows, `${sanitize(corpus.name)}_corpus.csv`, 'text/csv');
+}
+
 export function exportCorpusJSON(corpus) {
   const data = {
     id: corpus.id,

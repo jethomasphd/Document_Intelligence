@@ -209,6 +209,13 @@ export default function Generator() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="flex items-center gap-4 mb-6">
+        <Link to={`/corpus/${id}/explore`} className="text-text-muted text-sm no-underline hover:text-accent-cyan transition-colors">&larr; Back to Map</Link>
+        <span className="text-border-line">|</span>
+        <Link to={`/corpus/${id}/compare`} className="text-text-muted text-sm no-underline hover:text-accent-cyan transition-colors">Compare</Link>
+        <span className="text-border-line">|</span>
+        <Link to="/home" className="text-text-muted text-sm no-underline hover:text-accent-cyan transition-colors">Home</Link>
+      </div>
       <h1 className="text-2xl font-semibold text-text-primary mb-2">Document Generator</h1>
       <p className="text-text-muted mb-6">
         Point to a semantic zone, generate candidates, and the system automatically embeds all of them,

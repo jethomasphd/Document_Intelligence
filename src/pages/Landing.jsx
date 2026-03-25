@@ -15,9 +15,9 @@ export default function Landing() {
 
     const timers = [];
     timers.push(setTimeout(() => setPhase(0), 400));
-    timers.push(setTimeout(() => setPhase(1), 2800));
-    timers.push(setTimeout(() => setPhase(2), 5200));
-    timers.push(setTimeout(() => setShowCTA(true), 7000));
+    timers.push(setTimeout(() => setPhase(1), 3200));
+    timers.push(setTimeout(() => setPhase(2), 6000));
+    timers.push(setTimeout(() => setShowCTA(true), 8500));
     return () => timers.forEach(clearTimeout);
   }, [navigate]);
 
@@ -33,15 +33,20 @@ export default function Landing() {
     >
       <div className="max-w-2xl text-center space-y-8">
         <p className={`text-lg md:text-xl text-text-muted leading-relaxed transition-opacity duration-1500 ${phase >= 0 ? 'opacity-100' : 'opacity-0'}`}>
-          You have thousands of documents, millions of words, and no way to see what they actually mean together.
+          You have thousands of documents. Somewhere inside them is a pattern:
+          what works, what doesn't, and why. But that pattern is invisible
+          when you're reading one file at a time.
         </p>
 
         <p className={`text-xl md:text-2xl text-text-primary leading-relaxed font-light transition-opacity duration-1500 ${phase >= 1 ? 'opacity-100' : 'opacity-0'}`}>
-          Your top-performing content lives in specific neighborhoods. The documents closest to your winners are the ones you should be writing next.
+          What if you could stop reading your content and start <em>seeing</em> it?
         </p>
 
-        <p className={`text-2xl md:text-3xl text-accent-cyan font-semibold transition-opacity duration-1500 ${phase >= 2 ? 'opacity-100' : 'opacity-0'}`}>
-          See the map. Find the patterns. Generate what's missing.
+        <p className={`text-lg md:text-xl text-text-muted leading-relaxed transition-opacity duration-1500 ${phase >= 2 ? 'opacity-100' : 'opacity-0'}`}>
+          Document Intelligence maps everything you've written into a single landscape.
+          High performers cluster together.
+          Gaps appear where nothing exists yet.
+          The next thing worth creating becomes obvious.
         </p>
       </div>
 
@@ -54,7 +59,7 @@ export default function Landing() {
           onClick={enter}
           className="bg-accent-cyan text-bg-primary px-10 py-3.5 rounded-lg font-semibold text-lg hover:opacity-90 transition-opacity cursor-pointer"
         >
-          Get Started
+          Start Seeing
         </button>
       </div>
 

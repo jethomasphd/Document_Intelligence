@@ -5,6 +5,7 @@ import './index.css';
 import Layout from './components/Layout';
 import Landing from './pages/Landing';
 import Home from './pages/Home';
+import About from './pages/About';
 import CorpusNew from './pages/CorpusNew';
 import Explorer from './pages/Explorer';
 import Comparator from './pages/Comparator';
@@ -17,6 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/" element={<Landing />} />
         <Route element={<Layout />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/about" element={<About />} />
           <Route path="/corpus/new" element={<CorpusNew />} />
           <Route path="/corpus/:id/explore" element={<Explorer />} />
           <Route path="/corpus/:id/compare" element={<Comparator />} />

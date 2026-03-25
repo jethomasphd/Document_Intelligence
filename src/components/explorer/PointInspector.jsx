@@ -54,9 +54,13 @@ export default function PointInspector({ corpus }) {
     setSummarizing(true);
     setSummary(null);
     try {
+      const topNeighborTitles = neighbors.slice(0, 5).map((n) => n.title || n.id).join(', ');
       const resp = await summarize({
         content: selectedPoint.content,
         context: corpus.domain,
+        title: selectedPoint.title || selectedPoint.id,
+        category: selectedPoint.category,
+        neighbors: topNeighborTitles,
       });
       setSummary(resp.summary);
     } catch (e) {
