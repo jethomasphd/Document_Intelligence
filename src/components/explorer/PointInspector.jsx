@@ -4,6 +4,7 @@ import useStore from '../../store';
 import { knn } from '../../lib/knn';
 import { summarize } from '../../lib/api';
 import { exportNeighborsCSV } from '../../lib/export';
+import InfoHint from '../ui/InfoHint';
 
 export default function PointInspector({ corpus }) {
   const navigate = useNavigate();
@@ -80,7 +81,10 @@ export default function PointInspector({ corpus }) {
 
       {/* Neighbors */}
       <div className="mb-3 flex items-center justify-between">
-        <h4 className="text-text-primary text-sm font-medium">Nearest Neighbors</h4>
+        <h4 className="text-text-primary text-sm font-medium">
+          Nearest Neighbors
+          <InfoHint text="The 15 most semantically similar documents, ranked by cosine similarity. Click any neighbor to navigate to it." position="left" />
+        </h4>
         <button
           onClick={() => exportNeighborsCSV(neighbors, selectedPoint.title || selectedPoint.id)}
           className="text-text-muted text-xs hover:text-accent-cyan"

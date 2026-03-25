@@ -16,9 +16,10 @@ export async function reduceToPlot(embeddings, options = {}) {
 
   // Step 1: PCA to reduce dimensions (if embedding dim > pcaDims)
   let reduced = matrix;
+  let pcaModel = null;
   if (matrix[0].length > pcaDims) {
-    const pca = new PCA(matrix);
-    reduced = pca.predict(matrix, { nComponents: pcaDims }).to2DArray();
+    pcaModel = new PCA(matrix);
+    reduced = pcaModel.predict(matrix, { nComponents: pcaDims }).to2DArray();
   }
 
   // Step 2: UMAP to 2D
@@ -40,32 +41,47 @@ export async function reduceToPlot(embeddings, options = {}) {
       nNeighbors: effectiveNeighbors,
       minDist,
       nComponents: 2,
-      reduced, // PCA-reduced data needed for transform
+      reduced,   // PCA-reduced data needed for transform
+      coords2d,  // 2D coordinates for neighbor interpolation
+      pcaMean: pcaModel ? Array.from(pcaModel.means) : null,
+      pcaLoadings: pcaModel
+        ? pcaModel.getLoadings().to2DArray().map((row) => row.slice(0, pcaDims))
+        : null,
+      pcaDims,
     },
   };
 }
 
 export function transformNew(umapModel, newEmbeddings) {
-  // Simple projection: find nearest neighbors in the PCA space and interpolate positions
-  // This is a simplified approach since umap-js doesn't have a full transform method
-  if (!umapModel || !umapModel.reduced) {
+  if (!umapModel || !umapModel.reduced || !umapModel.coords2d) {
     throw new Error('UMAP model not available for transform');
   }
 
-  // For now, use a simple nearest-neighbor interpolation in the reduced space
-  const pcaDims = umapModel.reduced[0].length;
+  const { reduced, coords2d, pcaMean, pcaLoadings, pcaDims } = umapModel;
   const results = [];
 
   for (const emb of newEmbeddings) {
     const vec = emb instanceof Float32Array ? Array.from(emb) : emb;
-    // Truncate or pad to PCA dims
-    const truncated = vec.slice(0, pcaDims);
 
-    // Find 5 nearest neighbors in PCA space
-    const distances = umapModel.reduced.map((r, i) => {
+    // Project new embedding through PCA if the original data was PCA-reduced
+    let projected;
+    if (pcaMean && pcaLoadings) {
+      const centered = vec.map((v, i) => v - (pcaMean[i] || 0));
+      projected = new Array(pcaDims).fill(0);
+      for (let d = 0; d < pcaDims; d++) {
+        for (let i = 0; i < centered.length; i++) {
+          projected[d] += centered[i] * (pcaLoadings[i]?.[d] || 0);
+        }
+      }
+    } else {
+      projected = vec.slice(0, reduced[0].length);
+    }
+
+    // Find 5 nearest neighbors in PCA-reduced space
+    const distances = reduced.map((r, i) => {
       let dist = 0;
-      for (let j = 0; j < truncated.length; j++) {
-        const d = truncated[j] - (r[j] || 0);
+      for (let j = 0; j < projected.length; j++) {
+        const d = projected[j] - (r[j] || 0);
         dist += d * d;
       }
       return { idx: i, dist };
@@ -79,9 +95,8 @@ export function transformNew(umapModel, newEmbeddings) {
     let x = 0, y = 0;
     for (const n of nearest) {
       const w = (1 / (n.dist + 1e-10)) / totalWeight;
-      // coords2d will be provided via the stored corpus
-      x += w * (n.x || 0);
-      y += w * (n.y || 0);
+      x += w * coords2d[n.idx][0];
+      y += w * coords2d[n.idx][1];
     }
 
     results.push([x, y]);

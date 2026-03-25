@@ -3,8 +3,24 @@ import clsx from 'clsx';
 import DropZone from '../components/corpus/DropZone';
 import FieldMapper from '../components/corpus/FieldMapper';
 import EmbedProgress from '../components/corpus/EmbedProgress';
+import StepGuide from '../components/ui/StepGuide';
 
 const STEPS = ['Upload', 'Configure', 'Embed'];
+
+const GUIDES = [
+  {
+    title: 'Upload your document file',
+    description: 'Drag and drop a CSV, JSON, or plain text file. CSV files should have a header row — each row becomes one document. JSON files should be an array of objects. Plain text files treat each line as a separate document.',
+  },
+  {
+    title: 'Map your columns and name your corpus',
+    description: 'Tell us which column contains the text to embed (required). Optionally map title, ID, and category columns. The category column splits your documents into color-coded populations for comparison.',
+  },
+  {
+    title: 'Embedding in progress',
+    description: 'Each document is being sent to Voyage AI to compute a 1024-dimensional semantic embedding. Documents are batched (100 at a time) with automatic retry on rate limits. This typically takes 30-60 seconds for 1,000 documents.',
+  },
+];
 
 export default function CorpusNew() {
   const [step, setStep] = useState(0);
@@ -23,7 +39,7 @@ export default function CorpusNew() {
       <h1 className="text-2xl font-semibold text-text-primary mb-6">New Corpus</h1>
 
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex items-center gap-2 mb-6">
         {STEPS.map((label, i) => (
           <div key={label} className="flex items-center gap-2">
             <div
@@ -48,6 +64,8 @@ export default function CorpusNew() {
           </div>
         ))}
       </div>
+
+      <StepGuide steps={GUIDES} currentStep={step + 1} />
 
       {step === 0 && (
         <DropZone
