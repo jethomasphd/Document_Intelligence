@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { getCorpus, saveCorpus } from '../lib/storage';
 import { knn, zoneCentroid, cosineSimilarity } from '../lib/knn';
 import { embed, generate } from '../lib/api';
-import { transformNew } from '../lib/umap';
 import { exportGenerationReport } from '../lib/export';
 import MiniMap from '../components/generator/MiniMap';
 import TargetZone from '../components/generator/TargetZone';
@@ -19,17 +18,16 @@ const GUIDES = [
   },
   {
     title: 'Describe what you want and generate',
-    description: 'Write a clear prompt and pick a style. The system generates candidates, embeds all of them into semantic space, and automatically selects the top 5 closest to your target zone.',
+    description: 'Write a clear prompt and pick a style. The system generates 10 candidates, embeds all of them, and ranks by similarity to your target zone.',
   },
   {
     title: 'Review results and export',
-    description: 'The top 5 candidates are automatically added to your corpus. All are shown ranked by similarity so you can see the full distribution. Export your results or return to the Explorer to see the updated map.',
+    description: 'The top 5 are saved to your corpus automatically. All 10 are shown ranked by similarity. Export your results or return to the Explorer.',
   },
 ];
 
 const STYLES = ['Formal', 'Conversational', 'Urgent', 'Playful', 'Minimal', 'Persuasive'];
 const GENERATE_COUNT = 10;
-const AUTO_ACCEPT_COUNT = 5;
 
 export default function Generator() {
   const { id } = useParams();
@@ -88,8 +86,8 @@ export default function Generator() {
     setCandidates([]);
 
     try {
-      // Step 1: Generate candidates via Claude
-      setGenStatus(`Generating ${GENERATE_COUNT} candidates with Claude...`);
+      // Step 1: Generate via Claude
+      setGenStatus('Generating candidates with Claude...');
       const exemplarTexts = exemplars.slice(0, 8).map((e) => ({
         title: e.title || e.id,
         content: e.content?.slice(0, 500),
@@ -109,82 +107,54 @@ export default function Generator() {
         throw new Error('Claude returned no candidates. Try rephrasing your prompt.');
       }
 
-      // Step 2: Embed all candidates via Voyage AI
-      setGenStatus(`Embedding ${allRaw.length} candidates into semantic space...`);
+      // Step 2: Embed via Voyage AI
+      setGenStatus(`Embedding ${allRaw.length} candidates...`);
       const texts = allRaw.map((c) => c.content);
       const embResp = await embed({ texts, model: corpus.embeddingModel || 'voyage-3.5-lite' });
       const embeddings = embResp.embeddings || [];
       if (embeddings.length === 0) {
-        throw new Error('Embedding API returned no results. Try again.');
+        throw new Error('Embedding API returned no results.');
       }
 
-      // Step 3: Score each candidate by cosine similarity to zone center
-      setGenStatus('Ranking candidates by similarity to target zone...');
-      const zoneCenterArr = zoneCenter instanceof Float32Array ? Array.from(zoneCenter) : zoneCenter;
-      const scored = [];
+      // Step 3: Score by cosine similarity to zone center
+      setGenStatus('Ranking by similarity...');
+      const zc = Array.isArray(zoneCenter) ? zoneCenter : Array.from(zoneCenter);
+      const results = [];
 
       for (let i = 0; i < Math.min(allRaw.length, embeddings.length); i++) {
         const emb = embeddings[i];
-        if (!emb || !Array.isArray(emb) || emb.length === 0) continue;
+        if (!emb || !Array.isArray(emb)) continue;
 
-        let sim = 0;
-        try {
-          sim = cosineSimilarity(emb, zoneCenterArr);
-        } catch {
-          continue;
-        }
+        let sim;
+        try { sim = cosineSimilarity(emb, zc); } catch { continue; }
         if (!isFinite(sim)) continue;
 
-        let placement;
-        if (sim > 0.8) placement = 'on-target';
-        else if (sim > 0.6) placement = 'adjacent';
-        else placement = 'off-target';
-
-        scored.push({
-          title: allRaw[i].title || 'Untitled',
-          content: allRaw[i].content || '',
-          rationale: allRaw[i].rationale || '',
-          id: `gen_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-          embedding: emb,
+        results.push({
+          id: `gen_${i}_${Math.random().toString(36).slice(2, 8)}`,
+          title: String(allRaw[i].title || 'Untitled'),
+          content: String(allRaw[i].content || ''),
+          rationale: String(allRaw[i].rationale || ''),
           similarity: sim,
-          placement,
-          coords: null,
-          rank: 0,
-          accepted: false,
+          placement: sim > 0.8 ? 'on-target' : sim > 0.6 ? 'adjacent' : 'off-target',
+          embedding: emb,
         });
       }
 
-      if (scored.length === 0) {
-        throw new Error('Could not score any candidates. Try again.');
+      if (results.length === 0) {
+        throw new Error('Could not score any candidates.');
       }
 
-      // Step 4: Sort by similarity, accept top 5
-      scored.sort((a, b) => b.similarity - a.similarity);
-      scored.forEach((c, i) => { c.rank = i + 1; });
+      // Step 4: Sort and rank
+      results.sort((a, b) => b.similarity - a.similarity);
+      results.forEach((c, i) => {
+        c.rank = i + 1;
+        c.accepted = i < 5;
+      });
 
-      const acceptCount = Math.min(AUTO_ACCEPT_COUNT, scored.length);
-      for (let i = 0; i < acceptCount; i++) {
-        scored[i].accepted = true;
-      }
-
-      // Step 5: Try to project onto map (non-critical — skip if it fails)
-      if (corpus.umapModel && corpus.umapModel.coords2d && corpus.umapModel.reduced) {
-        try {
-          const allEmbs = scored.map((c) => c.embedding);
-          const projected = transformNew(corpus.umapModel, allEmbs);
-          for (let i = 0; i < scored.length; i++) {
-            if (projected[i] && Array.isArray(projected[i]) && projected[i].length >= 2 && isFinite(projected[i][0]) && isFinite(projected[i][1])) {
-              scored[i].coords = projected[i];
-            }
-          }
-        } catch (projErr) {
-          console.warn('Map projection failed (non-critical):', projErr.message);
-        }
-      }
-
-      // Step 6: Save accepted candidates to corpus
-      setGenStatus(`Adding top ${acceptCount} to corpus...`);
-      const newDocs = scored.filter((c) => c.accepted).map((c) => ({
+      // Step 5: Save top 5 to corpus
+      setGenStatus('Saving top candidates to corpus...');
+      const toSave = results.filter((c) => c.accepted);
+      const newDocs = toSave.map((c) => ({
         id: c.id,
         title: c.title,
         content: c.content,
@@ -192,22 +162,20 @@ export default function Generator() {
         embedding: c.embedding,
       }));
 
-      const updatedCorpus = {
-        ...corpus,
-        documents: [...corpus.documents, ...newDocs],
-        docCount: corpus.documents.length + newDocs.length,
-      };
+      try {
+        const updatedCorpus = {
+          ...corpus,
+          documents: [...corpus.documents, ...newDocs],
+          docCount: corpus.documents.length + newDocs.length,
+        };
+        await saveCorpus(updatedCorpus);
+        setCorpus(updatedCorpus);
+      } catch (saveErr) {
+        console.warn('Corpus save failed (candidates still shown):', saveErr);
+      }
 
-      await saveCorpus(updatedCorpus);
-      setCorpus(updatedCorpus);
-
-      // Strip embeddings from display state (they're huge and saved already)
-      const displayCandidates = scored.map((c) => {
-        const { embedding: _, ...rest } = c;
-        return rest;
-      });
-
-      setCandidates(displayCandidates);
+      // Step 6: Display — strip embeddings from state, they're huge
+      setCandidates(results.map(({ embedding, ...rest }) => rest));
       setStep(2);
       setGenStatus('');
     } catch (e) {
@@ -215,7 +183,7 @@ export default function Generator() {
       setGenStatus('');
       setCandidates([]);
       setStep(1);
-      alert('Generation failed: ' + (e.message || 'Unknown error. Check browser console (F12) for details.'));
+      alert('Generation failed: ' + (e.message || 'Unknown error'));
     }
     setGenerating(false);
   };
@@ -264,14 +232,12 @@ export default function Generator() {
             corpus={corpus}
             onPointSelect={handlePointSelect}
             onLassoSelect={handleLassoSelect}
-            candidates={candidates.filter((c) => c.coords)}
+            candidates={[]}
           />
           <p className="text-text-muted text-xs mt-2 text-center">
             {step === 0
               ? 'Click a point or lasso-select a region to define your target zone.'
-              : step === 2
-              ? 'All candidates are projected. Gold stars = accepted (top 5). Gray circles = the rest.'
-              : 'Gold stars will show where candidates land after generation.'}
+              : 'Your target zone is selected. Candidates will be ranked by proximity to this zone.'}
           </p>
         </div>
 
@@ -333,10 +299,10 @@ export default function Generator() {
                 disabled={generating || !prompt.trim()}
                 className="w-full bg-accent-cyan text-bg-primary py-2.5 rounded font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
               >
-                {generating ? genStatus || 'Processing...' : `Generate ${GENERATE_COUNT} & Auto-Select Top ${AUTO_ACCEPT_COUNT}`}
+                {generating ? genStatus || 'Processing...' : `Generate ${GENERATE_COUNT} Candidates`}
               </button>
               <p className="text-text-muted text-xs mt-2 text-center">
-                Generates {GENERATE_COUNT} candidates, embeds all into semantic space, and automatically selects the {AUTO_ACCEPT_COUNT} closest to your target zone.
+                Generates {GENERATE_COUNT} candidates, embeds all into semantic space, ranks by similarity to your target zone, and saves the top 5 to your corpus.
               </p>
             </div>
           )}
@@ -389,7 +355,7 @@ export default function Generator() {
               </h2>
             </div>
             <p className="text-text-muted text-sm mb-4">
-              Generated {candidates.length} candidates, embedded all into semantic space, and selected the {AUTO_ACCEPT_COUNT} closest to the target zone.
+              Generated {candidates.length} candidates, embedded all into semantic space, and saved the top 5 closest to the target zone.
               Your corpus now has <strong className="text-text-primary">{corpus.documents.length}</strong> total documents.
               {onTarget.length > 0 && (
                 <> <span className="text-success font-medium">{onTarget.length} on-target</span> (sim &gt; 0.8).</>
@@ -432,7 +398,7 @@ export default function Generator() {
           {/* All candidates ranked */}
           <h3 className="text-text-primary font-medium mb-1">All {candidates.length} Candidates Ranked by Similarity</h3>
           <p className="text-text-muted text-xs mb-4">
-            Top {AUTO_ACCEPT_COUNT} were automatically accepted into the corpus. All candidates are shown so you can see the full distribution.
+            Top 5 were automatically saved to your corpus. All {GENERATE_COUNT} candidates are shown ranked by similarity.
           </p>
           <div className="grid grid-cols-1 gap-3">
             {candidates.map((candidate) => (
