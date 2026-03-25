@@ -14,15 +14,15 @@ import ErrorBoundary from '../components/ui/ErrorBoundary';
 const GUIDES = [
   {
     title: 'Select a target zone on the map',
-    description: 'Click any point to use its semantic neighborhood, or lasso-select a region. The documents in that zone become exemplars that guide what Claude generates.',
+    description: 'Click any point to use its semantic neighborhood, or lasso-select a region.',
   },
   {
     title: 'Describe what you want and generate',
-    description: 'Write a clear prompt and pick a style. The system generates 10 candidates, embeds all of them, and ranks by similarity to your target zone.',
+    description: 'Write a clear prompt and pick a style. The system generates 10 candidates, embeds them, and ranks by similarity to your target zone.',
   },
   {
-    title: 'Review results and export',
-    description: 'The top 5 are saved to your corpus automatically. All 10 are shown ranked by similarity. Export your results or return to the Explorer.',
+    title: 'Review results and save',
+    description: 'All 10 candidates are ranked by similarity. Click "Save Top 5 to Corpus" to keep the best ones.',
   },
 ];
 
@@ -35,18 +35,18 @@ export default function Generator() {
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(0);
 
-  // Zone selection
   const [exemplars, setExemplars] = useState([]);
   const [zoneCenter, setZoneCenter] = useState(null);
 
-  // Generation prompt
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('Formal');
   const [generating, setGenerating] = useState(false);
   const [genStatus, setGenStatus] = useState('');
+  const [genError, setGenError] = useState(null);
 
-  // Results
   const [candidates, setCandidates] = useState([]);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     getCorpus(id).then((c) => {
@@ -63,6 +63,9 @@ export default function Generator() {
       setExemplars(neighbors);
       setZoneCenter(doc.embedding);
       setStep(1);
+      setSaved(false);
+      setCandidates([]);
+      setGenError(null);
     },
     [corpus]
   );
@@ -76,17 +79,23 @@ export default function Generator() {
       setExemplars(neighbors);
       setZoneCenter(centroid);
       setStep(1);
+      setSaved(false);
+      setCandidates([]);
+      setGenError(null);
     },
     [corpus]
   );
 
+  // ── GENERATE: Claude → Voyage → Score ──
   const handleGenerate = async () => {
     if (!corpus || !zoneCenter) return;
     setGenerating(true);
     setCandidates([]);
+    setGenError(null);
+    setSaved(false);
 
     try {
-      // Step 1: Generate via Claude
+      // 1. Generate via Claude
       setGenStatus('Generating candidates with Claude...');
       const exemplarTexts = exemplars.slice(0, 8).map((e) => ({
         title: e.title || e.id,
@@ -94,30 +103,43 @@ export default function Generator() {
         category: e.category,
       }));
 
-      const resp = await generate({
-        domain: corpus.domain,
-        exemplars: exemplarTexts,
-        prompt,
-        style,
-        count: GENERATE_COUNT,
-      });
+      let resp;
+      try {
+        resp = await generate({
+          domain: corpus.domain,
+          exemplars: exemplarTexts,
+          prompt,
+          style,
+          count: GENERATE_COUNT,
+        });
+      } catch (apiErr) {
+        throw new Error('Generation API call failed: ' + apiErr.message);
+      }
 
       const allRaw = (resp.candidates || []).filter((c) => c && c.content);
       if (allRaw.length === 0) {
         throw new Error('Claude returned no candidates. Try rephrasing your prompt.');
       }
 
-      // Step 2: Embed via Voyage AI
-      setGenStatus(`Embedding ${allRaw.length} candidates...`);
-      const texts = allRaw.map((c) => c.content);
-      const embResp = await embed({ texts, model: corpus.embeddingModel || 'voyage-3.5-lite' });
-      const embeddings = embResp.embeddings || [];
+      setGenStatus(`Generated ${allRaw.length} candidates. Now embedding...`);
+
+      // 2. Embed via Voyage AI
+      let embeddings;
+      try {
+        const texts = allRaw.map((c) => c.content);
+        const embResp = await embed({ texts, model: corpus.embeddingModel || 'voyage-3.5-lite' });
+        embeddings = embResp.embeddings || [];
+      } catch (embErr) {
+        throw new Error('Embedding API call failed: ' + embErr.message);
+      }
+
       if (embeddings.length === 0) {
         throw new Error('Embedding API returned no results.');
       }
 
-      // Step 3: Score by cosine similarity to zone center
       setGenStatus('Ranking by similarity...');
+
+      // 3. Score by cosine similarity
       const zc = Array.isArray(zoneCenter) ? zoneCenter : Array.from(zoneCenter);
       const results = [];
 
@@ -136,7 +158,9 @@ export default function Generator() {
           rationale: String(allRaw[i].rationale || ''),
           similarity: sim,
           placement: sim > 0.8 ? 'on-target' : sim > 0.6 ? 'adjacent' : 'off-target',
-          embedding: emb,
+          rank: 0,
+          accepted: false,
+          _embedding: emb, // stored privately, not rendered
         });
       }
 
@@ -144,69 +168,61 @@ export default function Generator() {
         throw new Error('Could not score any candidates.');
       }
 
-      // Step 4: Sort and rank
+      // 4. Sort and rank
       results.sort((a, b) => b.similarity - a.similarity);
       results.forEach((c, i) => {
         c.rank = i + 1;
         c.accepted = i < 5;
       });
 
-      // Step 5: Save top 5 to corpus
-      setGenStatus('Saving top candidates to corpus...');
-      const toSave = results.filter((c) => c.accepted);
+      setCandidates(results);
+      setStep(2);
+    } catch (e) {
+      console.error('Generation error:', e);
+      setGenError(e.message || 'Unknown error');
+    }
+
+    setGenStatus('');
+    setGenerating(false);
+  };
+
+  // ── SAVE: Separate from generation so it can't crash the results ──
+  const handleSave = async () => {
+    if (saved || saving) return;
+    setSaving(true);
+
+    try {
+      const toSave = candidates.filter((c) => c.accepted);
       const newDocs = toSave.map((c) => ({
         id: c.id,
         title: c.title,
         content: c.content,
         category: `Generated ${new Date().toISOString().slice(0, 10)}`,
-        embedding: c.embedding,
+        embedding: c._embedding,
       }));
 
-      try {
-        const updatedCorpus = {
-          ...corpus,
-          documents: [...corpus.documents, ...newDocs],
-          docCount: corpus.documents.length + newDocs.length,
-        };
-        await saveCorpus(updatedCorpus);
-        setCorpus(updatedCorpus);
-      } catch (saveErr) {
-        console.warn('Corpus save failed (candidates still shown):', saveErr);
-      }
+      const updatedCorpus = {
+        ...corpus,
+        documents: [...corpus.documents, ...newDocs],
+        docCount: corpus.documents.length + newDocs.length,
+      };
 
-      // Step 6: Display — strip embeddings from state, they're huge
-      setCandidates(results.map(({ embedding, ...rest }) => rest));
-      setStep(2);
-      setGenStatus('');
-    } catch (e) {
-      console.error('Generation error:', e);
-      setGenStatus('');
-      setCandidates([]);
-      setStep(1);
-      alert('Generation failed: ' + (e.message || 'Unknown error'));
+      await saveCorpus(updatedCorpus);
+      setCorpus(updatedCorpus);
+      setSaved(true);
+    } catch (saveErr) {
+      console.error('Save failed:', saveErr);
+      alert('Save failed: ' + saveErr.message + '\n\nYour generated candidates are still displayed. Try exporting the report instead.');
     }
-    setGenerating(false);
+
+    setSaving(false);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-text-muted">Loading corpus...</div>
-      </div>
-    );
-  }
-
-  if (!corpus) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-error">Corpus not found</div>
-      </div>
-    );
-  }
+  if (loading) return <div className="flex items-center justify-center h-96"><div className="text-text-muted">Loading corpus...</div></div>;
+  if (!corpus) return <div className="flex items-center justify-center h-96"><div className="text-error">Corpus not found</div></div>;
 
   const accepted = candidates.filter((c) => c.accepted);
   const onTarget = candidates.filter((c) => c.placement === 'on-target');
-  const adjacent = candidates.filter((c) => c.placement === 'adjacent');
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -219,14 +235,12 @@ export default function Generator() {
       </div>
       <h1 className="text-2xl font-semibold text-text-primary mb-2">Document Generator</h1>
       <p className="text-text-muted mb-6">
-        Point to a semantic zone, generate candidates, and the system automatically embeds all of them,
-        ranks by proximity to the target zone, and adds the top 5 to your corpus.
+        Generate candidates, rank by semantic similarity to your target zone, and save the best to your corpus.
       </p>
 
       <StepGuide steps={GUIDES} currentStep={Math.min(step + 1, 3)} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Map */}
         <div>
           <MiniMap
             corpus={corpus}
@@ -235,33 +249,28 @@ export default function Generator() {
             candidates={[]}
           />
           <p className="text-text-muted text-xs mt-2 text-center">
-            {step === 0
-              ? 'Click a point or lasso-select a region to define your target zone.'
-              : 'Your target zone is selected. Candidates will be ranked by proximity to this zone.'}
+            {step === 0 ? 'Click a point or lasso-select a region to define your target zone.' : 'Your target zone is selected.'}
           </p>
         </div>
 
-        {/* Right: Controls */}
         <div>
           {exemplars.length > 0 && (
             <TargetZone
               exemplars={exemplars}
               onReset={step !== 2 ? () => {
-                setStep(0);
-                setExemplars([]);
-                setZoneCenter(null);
-                setCandidates([]);
+                setStep(0); setExemplars([]); setZoneCenter(null);
+                setCandidates([]); setSaved(false); setGenError(null);
               } : undefined}
             />
           )}
 
-          {step === 1 && (
+          {step === 1 && !generating && (
             <div className="bg-bg-surface border border-border-line rounded-lg p-6 mt-4">
               <h3 className="text-text-primary font-medium mb-4">Generation Prompt</h3>
               <div className="mb-3">
                 <label className="block text-sm text-text-muted mb-1">
                   Domain
-                  <InfoHint text="Context about what these documents are. Helps Claude produce more appropriate content." />
+                  <InfoHint text="Context about what these documents are." />
                 </label>
                 <div className="text-sm text-text-primary font-mono bg-bg-raised px-3 py-2 rounded">
                   {corpus.domain || 'General'}
@@ -270,7 +279,7 @@ export default function Generator() {
               <div className="mb-3">
                 <label className="block text-sm text-text-muted mb-1">
                   I want documents that...
-                  <InfoHint text="Be specific. 'Write formal product descriptions for enterprise security tools' gives better results than 'Write something similar.'" />
+                  <InfoHint text="Be specific. Describe the type, tone, and topic." />
                 </label>
                 <textarea
                   value={prompt}
@@ -280,34 +289,25 @@ export default function Generator() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm text-text-muted mb-1">
-                  Style
-                  <InfoHint text="Formal = professional. Conversational = casual. Urgent = time-sensitive. Playful = creative. Minimal = concise. Persuasive = compelling." />
-                </label>
+                <label className="block text-sm text-text-muted mb-1">Style</label>
                 <select
                   value={style}
                   onChange={(e) => setStyle(e.target.value)}
                   className="bg-bg-raised border border-border-line rounded px-3 py-2 text-text-primary text-sm"
                 >
-                  {STYLES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
+                  {STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <button
                 onClick={handleGenerate}
-                disabled={generating || !prompt.trim()}
+                disabled={!prompt.trim()}
                 className="w-full bg-accent-cyan text-bg-primary py-2.5 rounded font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
               >
-                {generating ? genStatus || 'Processing...' : `Generate ${GENERATE_COUNT} Candidates`}
+                Generate {GENERATE_COUNT} Candidates
               </button>
-              <p className="text-text-muted text-xs mt-2 text-center">
-                Generates {GENERATE_COUNT} candidates, embeds all into semantic space, ranks by similarity to your target zone, and saves the top 5 to your corpus.
-              </p>
             </div>
           )}
 
-          {/* Generating progress */}
           {generating && (
             <div className="bg-bg-surface border border-accent-cyan/30 rounded-lg p-6 mt-4">
               <div className="flex items-center gap-3 mb-3">
@@ -321,91 +321,78 @@ export default function Generator() {
             </div>
           )}
 
+          {genError && !generating && (
+            <div className="bg-bg-surface border border-error/30 rounded-lg p-6 mt-4">
+              <h3 className="text-error font-medium mb-2">Generation Failed</h3>
+              <p className="text-text-muted text-sm mb-3">{genError}</p>
+              <button
+                onClick={() => setGenError(null)}
+                className="border border-border-line text-text-primary px-4 py-2 rounded text-sm hover:border-accent-cyan/50 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
           {step === 0 && (
             <div className="bg-bg-surface border border-border-line rounded-lg p-6">
               <h3 className="text-text-primary font-medium mb-2">Select a Target Zone</h3>
-              <p className="text-text-muted text-sm leading-relaxed mb-3">
-                The target zone defines <em>where in semantic space</em> your new documents should live.
+              <p className="text-text-muted text-sm leading-relaxed">
+                Click a point to use its neighborhood, or lasso-select a region on the map.
               </p>
-              <div className="space-y-2 text-sm text-text-muted">
-                <p>
-                  <span className="text-accent-cyan font-medium">Click a point</span> &mdash; uses its 10 nearest neighbors as the zone.
-                </p>
-                <p>
-                  <span className="text-accent-cyan font-medium">Lasso select</span> &mdash; drag to select a region.
-                </p>
-              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Results section */}
+      {/* Results */}
       {step === 2 && candidates.length > 0 && (
         <ErrorBoundary>
         <div className="mt-8">
-          {/* Success summary */}
           <div className="bg-bg-surface border border-success/30 rounded-lg p-6 mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-success/20 flex items-center justify-center">
-                <span className="text-success font-bold">{accepted.length}</span>
-              </div>
-              <h2 className="text-xl font-semibold text-text-primary">
-                Top {accepted.length} added to corpus
-              </h2>
-            </div>
+            <h2 className="text-xl font-semibold text-text-primary mb-2">
+              {candidates.length} Candidates Ranked by Similarity
+            </h2>
             <p className="text-text-muted text-sm mb-4">
-              Generated {candidates.length} candidates, embedded all into semantic space, and saved the top 5 closest to the target zone.
-              Your corpus now has <strong className="text-text-primary">{corpus.documents.length}</strong> total documents.
-              {onTarget.length > 0 && (
-                <> <span className="text-success font-medium">{onTarget.length} on-target</span> (sim &gt; 0.8).</>
-              )}
-              {adjacent.length > 0 && (
-                <> <span className="text-accent-cyan font-medium">{adjacent.length} adjacent</span> (sim 0.6&ndash;0.8).</>
-              )}
+              {onTarget.length > 0 && <><span className="text-success font-medium">{onTarget.length} on-target</span> (sim &gt; 0.8). </>}
+              Top 5 are marked for saving. {saved ? 'Saved to corpus.' : 'Click below to save.'}
             </p>
+
             <div className="flex flex-wrap gap-2">
-              <Link
-                to={`/corpus/${id}/explore`}
-                className="bg-accent-cyan text-bg-primary px-5 py-2 rounded text-sm font-medium no-underline hover:opacity-90 transition-opacity"
-              >
-                View Updated Map
-              </Link>
+              {!saved ? (
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="bg-success text-bg-primary px-5 py-2 rounded text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+                >
+                  {saving ? 'Saving...' : 'Save Top 5 to Corpus'}
+                </button>
+              ) : (
+                <Link
+                  to={`/corpus/${id}/explore`}
+                  className="bg-accent-cyan text-bg-primary px-5 py-2 rounded text-sm font-medium no-underline hover:opacity-90 transition-opacity"
+                >
+                  View Updated Map
+                </Link>
+              )}
               <button
                 onClick={() => exportGenerationReport(corpus, exemplars, candidates, zoneCenter)}
                 className="border border-border-line text-text-primary px-5 py-2 rounded text-sm hover:border-accent-cyan/50 transition-colors"
               >
-                Export Generation Report
+                Export Report
               </button>
               <button
-                onClick={() => {
-                  setStep(1);
-                  setCandidates([]);
-                }}
+                onClick={() => { setStep(1); setCandidates([]); setSaved(false); setGenError(null); }}
                 className="border border-border-line text-text-muted px-5 py-2 rounded text-sm hover:border-accent-cyan/50 transition-colors"
               >
-                Generate Another Round
+                Generate Again
               </button>
-              <Link
-                to="/home"
-                className="border border-border-line text-text-muted px-5 py-2 rounded text-sm no-underline hover:border-accent-cyan/50 transition-colors"
-              >
-                Back to Dashboard
-              </Link>
             </div>
           </div>
 
-          {/* All candidates ranked */}
-          <h3 className="text-text-primary font-medium mb-1">All {candidates.length} Candidates Ranked by Similarity</h3>
-          <p className="text-text-muted text-xs mb-4">
-            Top 5 were automatically saved to your corpus. All {GENERATE_COUNT} candidates are shown ranked by similarity.
-          </p>
           <div className="grid grid-cols-1 gap-3">
             {candidates.map((candidate) => (
-              <CandidateCard
-                key={candidate.id}
-                candidate={candidate}
-              />
+              <CandidateCard key={candidate.id} candidate={candidate} />
             ))}
           </div>
         </div>
