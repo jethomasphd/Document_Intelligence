@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useStore from '../../store';
 import { knn } from '../../lib/knn';
 import { summarize } from '../../lib/api';
-import { exportNeighborsCSV } from '../../lib/export';
+import { exportPointNeighborsCSV, exportCategoryNeighborsCSV } from '../../lib/export';
 import InfoHint from '../ui/InfoHint';
 
 function SimilarityBadge({ sim }) {
@@ -23,6 +23,16 @@ function SimilarityBadge({ sim }) {
   );
 }
 
+function downloadText(content, filename) {
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function PointInspector({ corpus }) {
   const navigate = useNavigate();
   const selectedPoint = useStore((s) => s.selectedPoint);
@@ -31,10 +41,11 @@ export default function PointInspector({ corpus }) {
   const [summary, setSummary] = useState(null);
   const [summarizing, setSummarizing] = useState(false);
   const [filterCategory, setFilterCategory] = useState(null);
+  const [showExports, setShowExports] = useState(false);
 
   const neighbors = useMemo(() => {
     if (!selectedPoint || !corpus) return [];
-    return knn(selectedPoint.embedding, corpus.documents, 15, filterCategory);
+    return knn(selectedPoint.embedding, corpus.documents, 25, filterCategory);
   }, [selectedPoint, corpus, filterCategory]);
 
   if (!selectedPoint) return null;
@@ -52,6 +63,12 @@ export default function PointInspector({ corpus }) {
       setSummary('Error: ' + e.message);
     }
     setSummarizing(false);
+  };
+
+  const exportSummary = () => {
+    if (!summary) return;
+    const text = `Document: ${selectedPoint.title || selectedPoint.id}\nCategory: ${selectedPoint.category || 'None'}\nCorpus: ${corpus.name}\n\n--- Summary ---\n${summary}\n\n--- Original Content ---\n${selectedPoint.content}`;
+    downloadText(text, `summary_${(selectedPoint.title || selectedPoint.id).replace(/\s+/g, '_')}.txt`);
   };
 
   const categories = [...new Set(corpus.documents.map((d) => d.category).filter(Boolean))];
@@ -81,7 +98,7 @@ export default function PointInspector({ corpus }) {
         </div>
       </div>
 
-      {/* Actions with explanations */}
+      {/* Summarize */}
       <div className="space-y-2 mb-4">
         <button
           onClick={handleSummarize}
@@ -91,35 +108,35 @@ export default function PointInspector({ corpus }) {
           {summarizing ? 'Summarizing...' : 'AI Summary'}
         </button>
         <p className="text-text-muted text-[10px] leading-tight">
-          Claude reads this document and produces a concise summary highlighting key themes and distinguishing characteristics.
+          Claude reads this document and produces a concise summary highlighting key themes.
         </p>
       </div>
 
       {summary && (
-        <div className="bg-bg-raised border border-accent-gold/30 rounded p-3 mb-4 text-sm text-text-primary">
-          {summary}
+        <div className="bg-bg-raised border border-accent-gold/30 rounded p-3 mb-4">
+          <div className="text-sm text-text-primary mb-2">{summary}</div>
+          <button
+            onClick={exportSummary}
+            className="text-accent-gold text-xs hover:opacity-80 transition-opacity"
+          >
+            Export summary as text
+          </button>
         </div>
       )}
 
-      {/* Neighbors section */}
+      {/* Neighbors */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
           <h4 className="text-text-primary text-sm font-medium">
             Nearest Neighbors
             <InfoHint
-              text="The 15 documents most semantically similar to this one, measured by cosine similarity. High similarity (>0.8) means the documents share strong thematic overlap. Click any neighbor to navigate to it and see its own neighborhood."
+              text="The 25 most semantically similar documents, measured by cosine similarity. High similarity (>0.8) = strong thematic overlap. Click to navigate."
               position="left"
             />
           </h4>
-          <button
-            onClick={() => exportNeighborsCSV(neighbors, selectedPoint.title || selectedPoint.id)}
-            className="text-text-muted text-xs hover:text-accent-cyan"
-          >
-            Export CSV
-          </button>
         </div>
         <p className="text-text-muted text-[10px] mb-2">
-          Sorted by cosine similarity. Click to navigate. Color-coded scores indicate semantic closeness.
+          Sorted by cosine similarity. Click to navigate. Color-coded scores indicate closeness.
         </p>
       </div>
 
@@ -136,14 +153,11 @@ export default function PointInspector({ corpus }) {
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-          <p className="text-text-muted text-[10px] mt-1">
-            Filter neighbors by category to see which documents from a specific population are closest.
-          </p>
         </div>
       )}
 
-      <div className="space-y-1">
-        {neighbors.map((n) => (
+      <div className="space-y-1 mb-4">
+        {neighbors.slice(0, 15).map((n) => (
           <button
             key={n.id}
             onClick={() => {
@@ -163,10 +177,50 @@ export default function PointInspector({ corpus }) {
             )}
           </button>
         ))}
+        {neighbors.length > 15 && (
+          <p className="text-text-muted text-xs text-center py-1">
+            Showing 15 of {neighbors.length} neighbors. Export for full list.
+          </p>
+        )}
       </div>
 
-      {/* Action buttons */}
-      <div className="mt-4 space-y-2">
+      {/* Export section */}
+      <div className="border-t border-border-line pt-3 mb-3">
+        <button
+          onClick={() => setShowExports(!showExports)}
+          className="text-sm text-text-muted hover:text-accent-cyan transition-colors flex items-center gap-1 w-full text-left mb-2"
+        >
+          <span>{showExports ? '\u25BC' : '\u25B6'}</span>
+          Export Options
+        </button>
+        {showExports && (
+          <div className="space-y-2">
+            <button
+              onClick={() => exportPointNeighborsCSV(neighbors, selectedPoint, 25)}
+              className="w-full text-left px-3 py-2 bg-bg-raised rounded text-sm hover:border-accent-cyan/50 border border-border-line transition-colors"
+            >
+              <div className="text-text-primary font-medium">Export Top 25 Neighbors</div>
+              <div className="text-text-muted text-xs">CSV with rank, title, category, similarity, and content preview for this document's neighborhood</div>
+            </button>
+
+            {selectedPoint.category && categories.length > 1 && (
+              <button
+                onClick={() => {
+                  const count = exportCategoryNeighborsCSV(corpus, selectedPoint.category, knn, 25);
+                  if (count) alert(`Exported ${count} unique neighbors across all "${selectedPoint.category}" documents.`);
+                }}
+                className="w-full text-left px-3 py-2 bg-bg-raised rounded text-sm hover:border-accent-cyan/50 border border-border-line transition-colors"
+              >
+                <div className="text-text-primary font-medium">Export "{selectedPoint.category}" Category Neighbors</div>
+                <div className="text-text-muted text-xs">Unique set of top 25 neighbors for every document in this category, deduplicated, with source counts</div>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Generate action */}
+      <div className="space-y-2">
         <button
           onClick={() => navigate(`/corpus/${corpus.id}/generate`)}
           className="w-full border border-accent-cyan text-accent-cyan py-1.5 rounded text-sm font-medium hover:bg-accent-cyan/10 transition-colors"
@@ -174,8 +228,7 @@ export default function PointInspector({ corpus }) {
           Generate from this neighborhood
         </button>
         <p className="text-text-muted text-[10px] leading-tight">
-          Opens the Generator with this document's neighborhood pre-selected as the target zone.
-          Claude will create new documents designed to fit semantically near this one.
+          Opens the Generator with this neighborhood as the target zone.
         </p>
       </div>
     </div>

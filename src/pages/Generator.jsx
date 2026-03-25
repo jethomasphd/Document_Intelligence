@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { getCorpus, saveCorpus } from '../lib/storage';
 import { knn, zoneCentroid, cosineSimilarity } from '../lib/knn';
 import { embed, generate } from '../lib/api';
 import { transformNew } from '../lib/umap';
+import { exportGenerationReport } from '../lib/export';
 import MiniMap from '../components/generator/MiniMap';
 import TargetZone from '../components/generator/TargetZone';
 import CandidateCard from '../components/generator/CandidateCard';
@@ -385,6 +386,47 @@ export default function Generator() {
               />
             ))}
           </div>
+
+          {/* Session end panel — appears once at least one candidate is accepted */}
+          {accepted.length > 0 && (
+            <div className="mt-6 bg-bg-surface border border-success/30 rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-full bg-success/20 flex items-center justify-center">
+                  <span className="text-success text-sm font-bold">{accepted.length}</span>
+                </div>
+                <h3 className="text-text-primary font-medium">
+                  {accepted.length} document{accepted.length !== 1 ? 's' : ''} accepted into corpus
+                </h3>
+              </div>
+              <p className="text-text-muted text-sm mb-4">
+                Your corpus now has <strong className="text-text-primary">{corpus.documents.length}</strong> total documents.
+                The accepted documents are saved and will appear on the map next time you visit the Explorer.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  to={`/corpus/${id}/explore`}
+                  className="bg-accent-cyan text-bg-primary px-4 py-2 rounded text-sm font-medium no-underline hover:opacity-90 transition-opacity"
+                >
+                  View Updated Map
+                </Link>
+                <button
+                  onClick={() => exportGenerationReport(corpus, exemplars, candidates, zoneCenter)}
+                  className="border border-border-line text-text-primary px-4 py-2 rounded text-sm hover:border-accent-cyan/50 transition-colors"
+                >
+                  Export Generation Report
+                </button>
+                <Link
+                  to="/home"
+                  className="border border-border-line text-text-muted px-4 py-2 rounded text-sm no-underline hover:border-accent-cyan/50 transition-colors"
+                >
+                  Back to Dashboard
+                </Link>
+              </div>
+              <p className="text-text-muted text-[10px] mt-3">
+                The generation report includes your target zone exemplars, all candidates with placement scores, and accepted documents with their full content.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
