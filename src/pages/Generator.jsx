@@ -10,6 +10,7 @@ import TargetZone from '../components/generator/TargetZone';
 import CandidateCard from '../components/generator/CandidateCard';
 import InfoHint from '../components/ui/InfoHint';
 import StepGuide from '../components/ui/StepGuide';
+import ErrorBoundary from '../components/ui/ErrorBoundary';
 
 const GUIDES = [
   {
@@ -87,7 +88,7 @@ export default function Generator() {
     setCandidates([]);
 
     try {
-      // Step 1: Generate candidates
+      // Step 1: Generate candidates via Claude
       setGenStatus(`Generating ${GENERATE_COUNT} candidates with Claude...`);
       const exemplarTexts = exemplars.slice(0, 8).map((e) => ({
         title: e.title || e.id,
@@ -108,75 +109,84 @@ export default function Generator() {
         throw new Error('Claude returned no candidates. Try rephrasing your prompt.');
       }
 
-      // Step 2: Embed all candidates
+      // Step 2: Embed all candidates via Voyage AI
       setGenStatus(`Embedding ${allRaw.length} candidates into semantic space...`);
       const texts = allRaw.map((c) => c.content);
       const embResp = await embed({ texts, model: corpus.embeddingModel || 'voyage-3.5-lite' });
-
-      // Step 3: Score all against zone center and project onto map
-      setGenStatus('Projecting into semantic space and ranking...');
       const embeddings = embResp.embeddings || [];
       if (embeddings.length === 0) {
         throw new Error('Embedding API returned no results. Try again.');
       }
+
+      // Step 3: Score each candidate by cosine similarity to zone center
+      setGenStatus('Ranking candidates by similarity to target zone...');
+      const zoneCenterArr = zoneCenter instanceof Float32Array ? Array.from(zoneCenter) : zoneCenter;
       const scored = [];
+
       for (let i = 0; i < Math.min(allRaw.length, embeddings.length); i++) {
-        const c = allRaw[i];
-        const embedding = embeddings[i];
-        if (!embedding || !Array.isArray(embedding)) continue;
+        const emb = embeddings[i];
+        if (!emb || !Array.isArray(emb) || emb.length === 0) continue;
 
         let sim = 0;
         try {
-          sim = cosineSimilarity(embedding, Array.from(zoneCenter));
+          sim = cosineSimilarity(emb, zoneCenterArr);
         } catch {
           continue;
         }
+        if (!isFinite(sim)) continue;
 
         let placement;
         if (sim > 0.8) placement = 'on-target';
         else if (sim > 0.6) placement = 'adjacent';
         else placement = 'off-target';
 
-        let coords = null;
-        if (corpus.umapModel) {
-          try {
-            const projected = transformNew(corpus.umapModel, [embedding]);
-            if (projected && projected[0] && Array.isArray(projected[0]) && projected[0].length >= 2 && isFinite(projected[0][0])) {
-              coords = projected[0];
-            }
-          } catch {
-            // transform may fail for old corpora without PCA data
-          }
-        }
-
         scored.push({
-          ...c,
-          id: `gen_${Date.now()}_${i}`,
-          embedding,
+          title: allRaw[i].title || 'Untitled',
+          content: allRaw[i].content || '',
+          rationale: allRaw[i].rationale || '',
+          id: `gen_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          embedding: emb,
           similarity: sim,
           placement,
-          coords,
-          verified: true,
+          coords: null,
           rank: 0,
           accepted: false,
         });
       }
 
-      // Step 4: Sort by similarity, take top 5
       if (scored.length === 0) {
-        throw new Error('Could not score any candidates. The embedding or projection step failed. Try again.');
+        throw new Error('Could not score any candidates. Try again.');
       }
+
+      // Step 4: Sort by similarity, accept top 5
       scored.sort((a, b) => b.similarity - a.similarity);
       scored.forEach((c, i) => { c.rank = i + 1; });
 
-      const topN = scored.slice(0, AUTO_ACCEPT_COUNT);
-      topN.forEach((c) => { c.accepted = true; });
+      const acceptCount = Math.min(AUTO_ACCEPT_COUNT, scored.length);
+      for (let i = 0; i < acceptCount; i++) {
+        scored[i].accepted = true;
+      }
 
-      // Step 5: Add top 5 to corpus
-      setGenStatus('Adding top 5 candidates to corpus...');
-      const newDocs = topN.map((c) => ({
+      // Step 5: Try to project onto map (non-critical — skip if it fails)
+      if (corpus.umapModel && corpus.umapModel.coords2d && corpus.umapModel.reduced) {
+        try {
+          const allEmbs = scored.map((c) => c.embedding);
+          const projected = transformNew(corpus.umapModel, allEmbs);
+          for (let i = 0; i < scored.length; i++) {
+            if (projected[i] && Array.isArray(projected[i]) && projected[i].length >= 2 && isFinite(projected[i][0]) && isFinite(projected[i][1])) {
+              scored[i].coords = projected[i];
+            }
+          }
+        } catch (projErr) {
+          console.warn('Map projection failed (non-critical):', projErr.message);
+        }
+      }
+
+      // Step 6: Save accepted candidates to corpus
+      setGenStatus(`Adding top ${acceptCount} to corpus...`);
+      const newDocs = scored.filter((c) => c.accepted).map((c) => ({
         id: c.id,
-        title: c.title || `Generated ${new Date().toLocaleString()}`,
+        title: c.title,
         content: c.content,
         category: `Generated ${new Date().toISOString().slice(0, 10)}`,
         embedding: c.embedding,
@@ -190,7 +200,14 @@ export default function Generator() {
 
       await saveCorpus(updatedCorpus);
       setCorpus(updatedCorpus);
-      setCandidates(scored);
+
+      // Strip embeddings from display state (they're huge and saved already)
+      const displayCandidates = scored.map((c) => {
+        const { embedding: _, ...rest } = c;
+        return rest;
+      });
+
+      setCandidates(displayCandidates);
       setStep(2);
       setGenStatus('');
     } catch (e) {
@@ -198,7 +215,7 @@ export default function Generator() {
       setGenStatus('');
       setCandidates([]);
       setStep(1);
-      alert('Generation failed: ' + (e.message || 'Unknown error. Check the console for details.'));
+      alert('Generation failed: ' + (e.message || 'Unknown error. Check browser console (F12) for details.'));
     }
     setGenerating(false);
   };
@@ -359,6 +376,7 @@ export default function Generator() {
 
       {/* Results section */}
       {step === 2 && candidates.length > 0 && (
+        <ErrorBoundary>
         <div className="mt-8">
           {/* Success summary */}
           <div className="bg-bg-surface border border-success/30 rounded-lg p-6 mb-6">
@@ -425,6 +443,7 @@ export default function Generator() {
             ))}
           </div>
         </div>
+        </ErrorBoundary>
       )}
     </div>
   );
