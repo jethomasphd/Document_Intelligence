@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getCorpus } from '../lib/storage';
 import { knn } from '../lib/knn';
 import { analyze } from '../lib/api';
+import { exportComparisonReport } from '../lib/export';
 import InfoHint from '../components/ui/InfoHint';
 
 export default function Comparator() {
@@ -293,6 +294,17 @@ export default function Comparator() {
                     Downloads all document pairs with similarity scores. Open in Excel or use for further analysis.
                   </p>
                 </div>
+                <div>
+                  <button
+                    onClick={() => exportComparisonReport(corpus, popA, popB, results, insight)}
+                    className="border border-border-line text-text-primary px-4 py-2 rounded hover:border-accent-cyan/50 transition-colors"
+                  >
+                    Full Report
+                  </button>
+                  <p className="text-text-muted text-[10px] mt-1 max-w-[200px]">
+                    Markdown report with stats, top pairs, distribution, and AI insight (if generated).
+                  </p>
+                </div>
               </div>
 
               {/* AI Insight */}
@@ -344,6 +356,28 @@ export default function Comparator() {
                     Showing 100 of {results.neighborRows.length.toLocaleString()} pairs. Use Export CSV for the complete dataset.
                   </div>
                 )}
+              </div>
+
+              {/* Session end: next steps */}
+              <div className="mt-6 bg-bg-surface border border-border-line rounded-lg p-5">
+                <h3 className="text-text-primary font-medium mb-2">Next Steps</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    to={`/corpus/${id}/explore`}
+                    className="text-text-muted text-sm no-underline border border-border-line px-4 py-2 rounded hover:border-accent-cyan/50 transition-colors"
+                  >
+                    &larr; Back to Explorer
+                  </Link>
+                  <Link
+                    to={`/corpus/${id}/generate`}
+                    className="text-accent-cyan text-sm no-underline border border-accent-cyan/30 px-4 py-2 rounded hover:bg-accent-cyan/10 transition-colors"
+                  >
+                    Generate documents targeting {popA} zone &rarr;
+                  </Link>
+                </div>
+                <p className="text-text-muted text-[10px] mt-2">
+                  Use what you learned here to guide generation: target the semantic zone of one population and create more documents like it.
+                </p>
               </div>
             </div>
           )}
