@@ -70,20 +70,20 @@ Select two document categories and understand exactly how they relate semantical
 - **Export CSV**: downloadable with explanatory note about what it contains and how to use it
 
 ### 4. Document Generator
-Point to a region on the semantic map and synthesize new documents that belong there.
+Point to a region on the semantic map and synthesize new documents that belong there. The system handles the hard part automatically.
 
-- **Persistent target zone**: the zone panel stays visible as a reference throughout the generation process, with reset option
 - **Select a target zone** by clicking a point (uses its 10 nearest neighbors) or lasso-selecting a region (computes centroid)
-- **Configure generation**: describe what you want, choose a style (Formal, Conversational, Urgent, Playful, Minimal, Persuasive), set the count (1-10)
-- **Iterative generation**: generate multiple rounds — new candidates accumulate. Adjust your prompt between rounds based on results.
-- **Verify All** button to batch-verify candidates
-- **Placement verification**: each candidate gets embedded and projected onto the map
-  - **On Target** (>0.8 cosine similarity to zone centroid) — strong semantic fit
-  - **Adjacent** (0.6-0.8) — close but not centered
-  - **Off Target** (<0.6) — missed the zone
-- **Iteration coaching**: when no candidates hit the target, the UI explains that this is normal and suggests prompt refinement strategies
-- **Candidate stats dashboard**: generated | verified | on target | adjacent | accepted
-- **Accept** verified candidates directly into your corpus
+- **Persistent target zone**: stays visible as a reference throughout the process
+- **Configure**: describe what you want, choose a style (Formal, Conversational, Urgent, Playful, Minimal, Persuasive)
+- **Automatic pipeline**: one click triggers the full flow:
+  1. Claude generates **25 candidates** (in batches)
+  2. All 25 are **embedded into semantic space** via Voyage AI
+  3. All 25 are **projected onto the existing UMAP map**
+  4. Ranked by **cosine similarity** to the target zone centroid
+  5. **Top 5 closest** are automatically added to the corpus
+- **Visual results**: all 25 candidates shown on the map — gold stars for accepted (top 5), gray circles for the rest
+- **Ranked display**: candidates listed by rank with placement badges (On Target / Adjacent / Off Target)
+- **Clear exit**: success panel shows accepted count, links to View Updated Map, Export Report, Generate Another Round, or return to Dashboard
 
 ---
 
@@ -108,9 +108,12 @@ Document Intelligence provides several export options:
 
 | Export | Format | What It Contains | Use Case |
 |--------|--------|-----------------|----------|
-| **Corpus JSON** | `.json` | All documents with titles, content, categories (no embeddings) | Backup, share with colleagues, import into other tools |
-| **Neighbors CSV** | `.csv` | Selected document's nearest neighbors with similarity scores | Analyze a specific document's semantic neighborhood in Excel |
+| **Corpus JSON** | `.json` | All documents with titles, content, categories, **and embeddings** | Full backup, import into Python/R, re-embed analysis, share with colleagues |
+| **Top 25 Neighbors** | `.csv` | A single document's nearest neighbors with similarity + content preview | Analyze a specific document's semantic neighborhood |
+| **Category Neighbors** | `.csv` | Unique neighbors across ALL docs in a category, deduplicated, with source counts | Find what content is semantically adjacent to an entire population |
 | **Comparison CSV** | `.csv` | All cross-population document pairs with similarity scores | Deep analysis of population overlap in external tools |
+| **Comparison Report** | `.md` | Stats, distribution table, AI insight, top 50 pairs | Shareable analysis report with narrative |
+| **Generation Report** | `.md` | Target zone exemplars, all 25 candidates ranked, accepted docs with full content | Document what was generated and why |
 
 Exports are available via buttons in the Explorer (top bar), Document Inspector (neighbor list), and Comparator (results section).
 
@@ -213,12 +216,16 @@ The Explorer opens with a conceptual guide banner explaining how to read the map
 1. **Select a target zone** on the map (click a point or lasso-select)
 2. **Review exemplars** — the target zone panel stays visible as your reference
 3. **Write a specific prompt** — "Write formal product descriptions for enterprise SaaS tools" beats "Write something similar"
-4. **Generate** — Claude produces candidates based on exemplars + prompt
-5. **Verify** each candidate (or use Verify All) — embeds the text and checks where it lands
-6. **Iterate** — if results miss the target, adjust your prompt and generate another round. New candidates accumulate.
-7. **Accept** the best candidates into your corpus
+4. **Click "Generate 25 & Auto-Select Top 5"** — the system handles everything:
+   - Generates 25 candidates via Claude (in batches of 10)
+   - Embeds all 25 into semantic space
+   - Projects all 25 onto the UMAP map
+   - Ranks by cosine similarity to the target zone
+   - Automatically adds the top 5 to your corpus
+5. **Review results** — all 25 candidates are displayed ranked by similarity with placement badges. The map shows gold stars for accepted (top 5) and gray circles for the rest.
+6. **Export or continue** — download a generation report, view the updated map, or generate another round with a refined prompt.
 
-**The iteration model**: Generation is probabilistic. Not every candidate will hit the target zone. Generate 5-10 candidates per round, verify all, accept the on-target ones, adjust your prompt, and generate again. The semantic map is your ground truth.
+**Why 25?** Generation is probabilistic. By generating a large batch and auto-selecting the best, you're much more likely to get on-target documents than with small batches and manual verification. The semantic map is the ground truth.
 
 ---
 

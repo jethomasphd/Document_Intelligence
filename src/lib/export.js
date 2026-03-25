@@ -5,18 +5,20 @@ export function exportCorpusJSON(corpus) {
     domain: corpus.domain,
     categories: corpus.categories,
     embeddingModel: corpus.embeddingModel,
+    documentCount: corpus.documents.length,
     documents: corpus.documents.map((d) => ({
       id: d.id,
       title: d.title,
       content: d.content,
       category: d.category,
+      embedding: d.embedding ? Array.from(d.embedding) : null,
     })),
     exportedAt: new Date().toISOString(),
   };
 
   downloadFile(
-    JSON.stringify(data, null, 2),
-    `${corpus.name.replace(/\s+/g, '_')}_corpus.json`,
+    JSON.stringify(data),
+    `${sanitize(corpus.name)}_corpus_with_embeddings.json`,
     'application/json'
   );
 }
