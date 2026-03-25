@@ -3,80 +3,74 @@ import clsx from 'clsx';
 const BADGE = {
   'on-target': {
     label: 'On Target',
-    color: 'bg-success text-bg-primary',
+    color: 'bg-success/20 text-success border-success/30',
     description: 'Landed within the target zone (>0.8 similarity)',
   },
   adjacent: {
     label: 'Adjacent',
-    color: 'bg-warning text-bg-primary',
+    color: 'bg-accent-cyan/10 text-accent-cyan border-accent-cyan/30',
     description: 'Close to the target zone (0.6-0.8 similarity)',
   },
   'off-target': {
     label: 'Off Target',
-    color: 'bg-error text-bg-primary',
-    description: 'Landed outside the target zone (<0.6 similarity)',
+    color: 'bg-error/10 text-error border-error/30',
+    description: 'Outside the target zone (<0.6 similarity)',
   },
 };
 
-export default function CandidateCard({ candidate, onVerify, onAccept }) {
+export default function CandidateCard({ candidate }) {
+  const badge = BADGE[candidate.placement];
+
   return (
-    <div className="bg-bg-surface border border-border-line rounded-lg p-5">
-      <div className="flex items-start justify-between mb-3">
-        <h4 className="text-text-primary font-medium">{candidate.title || 'Untitled'}</h4>
-        <div className="flex items-center gap-2">
-          {candidate.placement && (
+    <div
+      className={clsx(
+        'bg-bg-surface border rounded-lg p-4',
+        candidate.accepted
+          ? 'border-success/30'
+          : 'border-border-line opacity-60'
+      )}
+    >
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-text-muted font-mono text-xs shrink-0 w-6 text-right">
+            #{candidate.rank}
+          </span>
+          <h4 className="text-text-primary font-medium text-sm truncate">
+            {candidate.title || 'Untitled'}
+          </h4>
+          {candidate.accepted && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-success/20 text-success border border-success/30 shrink-0">
+              Added to Corpus
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {badge && (
             <span
-              className={clsx('text-xs px-2 py-0.5 rounded font-medium', BADGE[candidate.placement]?.color)}
-              title={BADGE[candidate.placement]?.description}
+              className={clsx('text-[10px] px-1.5 py-0.5 rounded border', badge.color)}
+              title={badge.description}
             >
-              {BADGE[candidate.placement]?.label}
+              {badge.label}
             </span>
           )}
           {candidate.similarity !== undefined && (
             <span className="text-xs text-text-muted font-mono" title="Cosine similarity to the zone centroid">
-              sim: {candidate.similarity.toFixed(3)}
+              {candidate.similarity.toFixed(3)}
             </span>
           )}
         </div>
       </div>
 
-      <div className="text-text-primary text-sm mb-3 bg-bg-raised rounded p-3 max-h-40 overflow-y-auto">
+      <div className="text-text-primary text-sm bg-bg-raised rounded p-3 max-h-28 overflow-y-auto ml-8">
         {candidate.content}
       </div>
 
       {candidate.rationale && (
-        <p className="text-text-muted text-xs mb-3 italic">
-          <span className="text-text-muted/70 not-italic font-medium">Why it fits: </span>
+        <p className="text-text-muted text-xs mt-2 ml-8 italic">
+          <span className="not-italic font-medium">Why it fits: </span>
           {candidate.rationale}
         </p>
       )}
-
-      <div className="flex gap-2 items-center">
-        {!candidate.verified && !candidate.accepted && (
-          <button
-            onClick={onVerify}
-            className="border border-accent-cyan text-accent-cyan px-4 py-1.5 rounded text-sm hover:bg-accent-cyan/10 transition-colors"
-          >
-            Verify Placement
-          </button>
-        )}
-        {candidate.verified && !candidate.accepted && (
-          <button
-            onClick={onAccept}
-            className="bg-success text-bg-primary px-4 py-1.5 rounded text-sm font-medium hover:opacity-90 transition-opacity"
-          >
-            Accept to Corpus
-          </button>
-        )}
-        {candidate.accepted && (
-          <span className="text-success text-sm font-medium">Added to corpus</span>
-        )}
-        {!candidate.verified && !candidate.accepted && (
-          <span className="text-text-muted text-xs ml-2">
-            Embeds the text and checks where it lands on the semantic map
-          </span>
-        )}
-      </div>
     </div>
   );
 }

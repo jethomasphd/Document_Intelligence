@@ -39,23 +39,46 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
       },
     }));
 
-    // Add candidate points
+    // Add candidate points - split into accepted (stars) and others (circles)
     if (candidates.length > 0) {
-      corpusTraces.push({
-        x: candidates.map((c) => c.coords[0]),
-        y: candidates.map((c) => c.coords[1]),
-        text: candidates.map((c) => c.title || 'Generated'),
-        type: 'scatter',
-        mode: 'markers',
-        name: 'Generated',
-        hoverinfo: 'text',
-        marker: {
-          color: '#f0a500',
-          size: 12,
-          symbol: 'star',
-          line: { color: '#fff', width: 1 },
-        },
-      });
+      const accepted = candidates.filter((c) => c.accepted);
+      const others = candidates.filter((c) => !c.accepted);
+
+      if (accepted.length > 0) {
+        corpusTraces.push({
+          x: accepted.map((c) => c.coords[0]),
+          y: accepted.map((c) => c.coords[1]),
+          text: accepted.map((c) => `#${c.rank} ${c.title || 'Generated'} (sim: ${c.similarity?.toFixed(3)})`),
+          type: 'scatter',
+          mode: 'markers',
+          name: 'Accepted (Top 5)',
+          hoverinfo: 'text',
+          marker: {
+            color: '#f0a500',
+            size: 14,
+            symbol: 'star',
+            line: { color: '#fff', width: 1 },
+          },
+        });
+      }
+
+      if (others.length > 0) {
+        corpusTraces.push({
+          x: others.map((c) => c.coords[0]),
+          y: others.map((c) => c.coords[1]),
+          text: others.map((c) => `#${c.rank} ${c.title || 'Generated'} (sim: ${c.similarity?.toFixed(3)})`),
+          type: 'scatter',
+          mode: 'markers',
+          name: 'Other Candidates',
+          hoverinfo: 'text',
+          marker: {
+            color: '#64748b',
+            size: 6,
+            symbol: 'circle',
+            opacity: 0.5,
+          },
+        });
+      }
     }
 
     return corpusTraces;

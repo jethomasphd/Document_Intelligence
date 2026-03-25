@@ -67,7 +67,7 @@ export default function Explorer() {
               Generate
             </Link>
           </Tooltip>
-          <Tooltip text="Download your corpus as JSON for external analysis. Includes all documents with titles, content, and categories (without embeddings for portability)." position="bottom">
+          <Tooltip text="Download your full corpus as JSON including embeddings. Use for backup, sharing, or importing into Python/R for further analysis." position="bottom">
             <button
               onClick={() => exportCorpusJSON(corpus)}
               className="text-text-muted text-sm hover:text-accent-cyan transition-colors"
