@@ -7,7 +7,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col">
       <header className="border-b border-border-line bg-bg-surface px-6 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 no-underline">
+        <Link to="/home" className="flex items-center gap-3 no-underline">
           <div className="w-8 h-8 rounded bg-accent-cyan/20 flex items-center justify-center">
             <span className="text-accent-cyan font-mono text-sm font-medium">DI</span>
           </div>
@@ -15,10 +15,10 @@ export default function Layout() {
         </Link>
         <nav className="flex items-center gap-4">
           <Link
-            to="/"
+            to="/home"
             className={clsx(
               'text-sm no-underline transition-colors',
-              location.pathname === '/' ? 'text-accent-cyan' : 'text-text-muted hover:text-text-primary'
+              location.pathname === '/home' ? 'text-accent-cyan' : 'text-text-muted hover:text-text-primary'
             )}
           >
             Home

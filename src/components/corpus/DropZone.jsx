@@ -2,9 +2,16 @@ import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 
+const DATA_SPECS = [
+  { format: 'CSV', desc: 'Comma-separated values with a header row. Each row = one document.', example: 'id,title,content,category' },
+  { format: 'JSON', desc: 'An array of objects. Each object = one document.', example: '[{"title": "...", "content": "..."}]' },
+  { format: 'TXT', desc: 'Plain text. Each line = one document.', example: 'One document per line' },
+];
+
 export default function DropZone({ onDataParsed }) {
   const [error, setError] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [showSpecs, setShowSpecs] = useState(false);
 
   const parseCSV = (file) => {
     Papa.parse(file, {
@@ -100,6 +107,43 @@ export default function DropZone({ onDataParsed }) {
         <p className="text-text-muted text-sm">Accepts .csv, .json, or .txt files</p>
       </div>
 
+      {/* Data requirements */}
+      <div className="mt-4">
+        <button
+          onClick={() => setShowSpecs(!showSpecs)}
+          className="text-sm text-text-muted hover:text-accent-cyan transition-colors flex items-center gap-1"
+        >
+          <span>{showSpecs ? '\u25BC' : '\u25B6'}</span>
+          Data format requirements
+        </button>
+        {showSpecs && (
+          <div className="mt-3 bg-bg-surface border border-border-line rounded-lg p-4 space-y-3">
+            <p className="text-text-muted text-sm">
+              Your file must contain at least one column or field with the <strong className="text-text-primary">text content</strong> to analyze.
+              The system works best with 10&ndash;10,000 documents. Very short texts (under 10 words) produce weaker embeddings.
+            </p>
+            {DATA_SPECS.map((spec) => (
+              <div key={spec.format} className="flex gap-3 items-start">
+                <span className="text-accent-cyan font-mono text-xs font-medium bg-accent-cyan/10 px-2 py-0.5 rounded shrink-0 mt-0.5">
+                  {spec.format}
+                </span>
+                <div>
+                  <p className="text-text-primary text-sm">{spec.desc}</p>
+                  <code className="text-text-muted text-xs font-mono">{spec.example}</code>
+                </div>
+              </div>
+            ))}
+            <div className="border-t border-border-line pt-3">
+              <p className="text-text-muted text-xs leading-relaxed">
+                <strong className="text-text-primary">Recommended structure:</strong> Include a <em>content</em> column (the full text to embed),
+                a <em>title</em> column (short display label), and optionally a <em>category</em> column (for population comparison).
+                Avoid columns with very long HTML or binary data.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
       {error && (
         <div className="mt-4 p-3 bg-error/10 border border-error/30 rounded text-error text-sm">
           {error}
@@ -109,7 +153,10 @@ export default function DropZone({ onDataParsed }) {
       {preview && (
         <div className="mt-6">
           <h3 className="text-text-primary font-medium mb-2">
-            Preview ({preview.count} documents, {preview.columns.length} columns)
+            Preview
+            <span className="text-text-muted font-normal text-sm ml-2">
+              {preview.count} documents, {preview.columns.length} columns
+            </span>
           </h3>
           <div className="overflow-x-auto border border-border-line rounded-lg">
             <table className="w-full text-sm">

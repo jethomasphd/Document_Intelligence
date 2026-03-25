@@ -21,6 +21,10 @@ body {
   min-height: 100vh;
 }
 
+.duration-1500 {
+  transition-duration: 1500ms;
+}
+
 /* Plotly overrides for dark theme */
 .js-plotly-plot .plotly .modebar {
   background: transparent !important;
