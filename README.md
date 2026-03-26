@@ -1,10 +1,40 @@
 # Document Intelligence
 
-**You have thousands of documents. Somewhere inside them is a pattern: what works, what doesn't, and why. But that pattern is invisible when you're reading one file at a time.**
+**See what your documents mean — all of them, all at once.**
 
-Document Intelligence maps your entire document collection into a single semantic landscape. Every document becomes a point, positioned by meaning. Similar content clusters together. Gaps reveal where nothing exists yet. The next thing worth creating becomes obvious.
+You have hundreds or thousands of documents. Emails, product descriptions, research papers, marketing copy. Each one was written for a reason, but you can only read them one at a time. The patterns that connect them — what works, what doesn't, what's missing — are invisible at scale.
 
-[Live Demo](https://document-intelligence.pages.dev)
+Document Intelligence changes that. Upload your documents, and they arrange themselves on a visual map based on what they *mean*. Similar documents cluster together. Gaps become visible. Then you can generate new content that targets any region of that map — and verify it landed where you intended.
+
+[Live Demo](https://document-intelligence.pages.dev) | [What Can I Do With This?](#what-can-i-do-with-this) | [User Guide](#user-guide) | [Architecture](#architecture) | [Glossary](#plain-english-glossary) | [Deployment](#deployment)
+
+---
+
+## What Can I Do With This?
+
+| If you have... | You can... |
+|----------------|-----------|
+| **Marketing emails** | See which subject lines sound alike, find what your top performers have in common, generate new ones that match the pattern |
+| **Product descriptions** | Map your entire catalog by meaning, spot coverage gaps, auto-generate descriptions for new products that fit existing categories |
+| **Research papers** | Visualize how fields overlap, find interdisciplinary boundary zones, discover which papers bridge different communities |
+| **Customer reviews** | Separate 5-star language from 1-star language visually, see what themes distinguish satisfied customers |
+| **Any document collection** | Find patterns across hundreds of files that you'd never spot reading one at a time |
+
+The **Top Performer Strategy** is especially powerful: tag your best-performing documents (highest open rates, most sales, best engagement) as a category. The map shows you where winners cluster, what they have in common, and where to aim new content.
+
+---
+
+## Philosophy
+
+Most text analysis tools treat documents as bags of words. They count frequencies, extract keywords, and build topic models — all useful, but blind to the deeper structure of meaning.
+
+Document Intelligence takes a different approach. It uses neural embeddings ([Voyage AI](https://www.voyageai.com/)) to represent each document as a point in 1024-dimensional space, where **proximity encodes semantic similarity**. Two documents about "quarterly revenue growth" and "fiscal performance improvements" land near each other — not because they share words, but because they share meaning.
+
+The platform then uses [UMAP](https://umap-learn.readthedocs.io/) to project that high-dimensional space down to a 2D map you can see and interact with. What emerges is a topography of meaning: clusters, gradients, outliers, and boundaries between concepts.
+
+The real power comes from the generative layer. Once you can see where meaning lives, you can point to a region and say "generate something that belongs here." Claude doesn't just write — it writes *with semantic intent*, producing documents that land in the neighborhood you specified. You verify this by embedding the output and checking where it actually falls on the map.
+
+This is not search. This is not summarization. This is **spatial reasoning over meaning**.
 
 ---
 
@@ -243,6 +273,26 @@ worker/
 | Job postings by industry | How industries describe roles | Postings matching an industry signature |
 | Research abstracts by field | Where disciplines overlap | Abstracts at the boundary of two fields |
 | Top performers vs. rest | What semantic patterns distinguish winners | More content like your best |
+
+---
+
+## Plain English Glossary
+
+New to this? Here's what every technical term means in plain language:
+
+| Term | What It Actually Means |
+|------|----------------------|
+| **Corpus** | Your collection of documents — whatever you upload together |
+| **Embedding** | A way of converting text into numbers that capture its meaning. Like GPS coordinates, but for ideas instead of locations |
+| **Semantic** | "Related to meaning." Semantic similarity = two documents are about the same thing, even if they use different words |
+| **Cosine Similarity** | A score from 0 to 1 measuring how similar two documents are in meaning. Think of it as a "similarity percentage" for ideas |
+| **UMAP** | The algorithm that draws the map — takes invisible "idea coordinates" and flattens them to 2D while keeping similar documents close together |
+| **PCA** | A pre-processing step that cleans up the data before the map is drawn. Like cleaning a photo before printing |
+| **Cluster** | A group of dots that bunch together on the map — documents about similar things |
+| **Nearest Neighbors** | The documents most similar in meaning to any given document |
+| **Target Zone** | A region you select on the map where you want to generate new content |
+| **Population** | A named group of documents within your corpus (e.g., "Top Performers" vs. "Others") |
+| **Projection** | Placing a new document onto the existing map to see where it lands based on its meaning |
 
 ---
 
