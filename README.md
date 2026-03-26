@@ -282,6 +282,7 @@ New to this? Here's what every technical term means in plain language:
 
 | Term | What It Actually Means |
 |------|----------------------|
+| **Document** | Any single piece of text you want to analyze — one email, one review, one description. Each row in your file is one document, and each document becomes one dot on the map |
 | **Corpus** | Your collection of documents — whatever you upload together |
 | **Embedding** | A way of converting text into numbers that capture its meaning. Like GPS coordinates, but for ideas instead of locations |
 | **Semantic** | "Related to meaning." Semantic similarity = two documents are about the same thing, even if they use different words |

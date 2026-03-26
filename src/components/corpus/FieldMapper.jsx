@@ -55,13 +55,19 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
       {/* Corpus identity */}
       <div className="space-y-4 mb-8">
         <div>
-          <label className="block text-sm text-text-muted mb-1">Corpus Name</label>
+          <label className="block text-sm mb-1">
+            <span className="text-text-muted">Corpus Name</span>
+            <span className="text-accent-cyan ml-1">*</span>
+          </label>
           <input
             value={config.name}
             onChange={(e) => setConfig((prev) => ({ ...prev, name: e.target.value }))}
-            className="w-full bg-bg-raised border border-border-line rounded px-3 py-2 text-text-primary"
+            className={`w-full bg-bg-raised border rounded px-3 py-2 text-text-primary transition-colors ${config.name.trim() ? 'border-success/40' : 'border-accent-cyan/50'}`}
             placeholder="My Document Corpus"
           />
+          {!config.name.trim() && (
+            <p className="text-accent-cyan text-xs mt-1">Give your corpus a name so you can find it later.</p>
+          )}
         </div>
         <div>
           <label className="block text-sm text-text-muted mb-1">
@@ -74,6 +80,7 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
             className="w-full bg-bg-raised border border-border-line rounded px-3 py-2 text-text-primary"
             placeholder="e.g., email subject lines, product descriptions, research abstracts..."
           />
+          <p className="text-text-muted text-xs mt-1">Optional but recommended. Helps the AI understand your content when generating or analyzing.</p>
         </div>
       </div>
 
@@ -85,29 +92,42 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {Object.entries(FIELD_INFO).map(([key, info]) => (
-          <div key={key}>
-            <label className="block text-sm text-text-muted mb-1">
-              {info.label} {info.required && <span className="text-accent-cyan">*</span>}
-              <InfoHint text={info.tooltip} />
-            </label>
-            <select
-              value={config.fieldMap[key]}
-              onChange={(e) => updateField(key, e.target.value)}
-              className="w-full bg-bg-raised border border-border-line rounded px-3 py-2 text-text-primary"
-            >
-              <option value="">&mdash; Select column &mdash;</option>
-              {columns.map((col) => (
-                <option key={col} value={col}>{col}</option>
-              ))}
-            </select>
-          </div>
-        ))}
+        {Object.entries(FIELD_INFO).map(([key, info]) => {
+          const isMapped = !!config.fieldMap[key];
+          return (
+            <div key={key} className={`rounded-lg border p-3 transition-colors ${info.required && !isMapped ? 'border-accent-cyan/50 bg-accent-cyan/5' : isMapped ? 'border-success/30 bg-success/5' : 'border-border-line'}`}>
+              <label className="block text-sm mb-1.5">
+                <span className={isMapped ? 'text-success' : info.required ? 'text-accent-cyan' : 'text-text-muted'}>{info.label}</span>
+                {info.required && <span className="text-accent-cyan ml-1">*</span>}
+                {isMapped && <span className="text-success text-xs ml-2">&#10003;</span>}
+                <InfoHint text={info.tooltip} />
+              </label>
+              <select
+                value={config.fieldMap[key]}
+                onChange={(e) => updateField(key, e.target.value)}
+                className={`w-full bg-bg-raised border rounded px-3 py-2 text-text-primary transition-colors ${info.required && !isMapped ? 'border-accent-cyan/50' : isMapped ? 'border-success/30' : 'border-border-line'}`}
+              >
+                <option value="">{info.required ? `\u2190 Select your ${info.label.toLowerCase()} column` : `\u2014 Select column (optional) \u2014`}</option>
+                {columns.map((col) => (
+                  <option key={col} value={col}>{col}</option>
+                ))}
+              </select>
+              {info.required && !isMapped && (
+                <p className="text-accent-cyan text-xs mt-1.5">Which column contains the {info.label.toLowerCase() === 'content' ? 'text you want to analyze' : info.label.toLowerCase()}?</p>
+              )}
+              {!info.required && !isMapped && (
+                <p className="text-text-muted text-xs mt-1">{info.placeholder}</p>
+              )}
+            </div>
+          );
+        })}
 
         {/* Category - special treatment */}
-        <div>
-          <label className="block text-sm text-text-muted mb-1">
-            Category
+        <div className={`rounded-lg border p-3 transition-colors ${!singlePop && !config.fieldMap.category ? 'border-accent-cyan/50 bg-accent-cyan/5' : (singlePop || config.fieldMap.category) ? 'border-success/30 bg-success/5' : 'border-border-line'}`}>
+          <label className="block text-sm mb-1.5">
+            <span className={(singlePop || config.fieldMap.category) ? 'text-success' : 'text-accent-cyan'}>Category</span>
+            <span className="text-accent-cyan ml-1">*</span>
+            {(singlePop || config.fieldMap.category) && <span className="text-success text-xs ml-2">&#10003;</span>}
             <InfoHint text="The high-level grouping for each document. This splits your corpus into color-coded populations on the map. For books: fiction vs. non-fiction. For emails: department. For products: product line." />
           </label>
           <div className="flex items-center gap-2">
@@ -115,15 +135,15 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
               <select
                 value={config.fieldMap.category}
                 onChange={(e) => updateField('category', e.target.value)}
-                className="flex-1 bg-bg-raised border border-border-line rounded px-3 py-2 text-text-primary"
+                className={`flex-1 bg-bg-raised border rounded px-3 py-2 text-text-primary transition-colors ${!config.fieldMap.category ? 'border-accent-cyan/50' : 'border-success/30'}`}
               >
-                <option value="">&mdash; Select column &mdash;</option>
+                <option value="">&larr; Select your category column</option>
                 {columns.map((col) => (
                   <option key={col} value={col}>{col}</option>
                 ))}
               </select>
             )}
-            <label className="flex items-center gap-1 text-sm text-text-muted whitespace-nowrap cursor-pointer">
+            <label className="flex items-center gap-1.5 text-sm text-text-muted whitespace-nowrap cursor-pointer">
               <input
                 type="checkbox"
                 checked={singlePop}
@@ -133,9 +153,12 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
                 }}
                 className="accent-accent-cyan"
               />
-              Single population
+              No categories &mdash; treat as single group
             </label>
           </div>
+          {!singlePop && !config.fieldMap.category && (
+            <p className="text-accent-cyan text-xs mt-1.5">Select a column, or check the box if all documents belong to one group.</p>
+          )}
         </div>
       </div>
 
@@ -239,6 +262,18 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
         </div>
       </div>
 
+      {/* Completion checklist */}
+      {!canProceed && (
+        <div className="bg-bg-surface border border-accent-cyan/20 rounded-lg p-4 mb-4">
+          <p className="text-text-muted text-sm font-medium mb-2">Still needed before you can continue:</p>
+          <ul className="text-sm space-y-1">
+            {!config.name.trim() && <li className="text-accent-cyan">&#8226; Give your corpus a name</li>}
+            {!config.fieldMap.content && <li className="text-accent-cyan">&#8226; Select which column contains your document text (Content)</li>}
+            {!singlePop && !config.fieldMap.category && <li className="text-accent-cyan">&#8226; Select a category column, or check &ldquo;No categories&rdquo;</li>}
+          </ul>
+        </div>
+      )}
+
       <div className="flex gap-3">
         <button
           onClick={onBack}
@@ -259,9 +294,9 @@ export default function FieldMapper({ columns, data, config, setConfig, onNext, 
             onNext();
           }}
           disabled={!canProceed}
-          className="bg-accent-cyan text-bg-primary px-6 py-2 rounded font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
+          className={`px-6 py-2 rounded font-medium transition-all ${canProceed ? 'bg-accent-cyan text-bg-primary hover:opacity-90' : 'bg-bg-raised text-text-muted border border-border-line cursor-not-allowed'}`}
         >
-          Continue to Embedding
+          {canProceed ? 'Continue to Embedding \u2192' : 'Complete the fields above to continue'}
         </button>
       </div>
     </div>
