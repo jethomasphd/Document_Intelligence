@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getCorpus, saveCorpus } from '../lib/storage';
+import { getCorpus } from '../lib/storage';
 import { knn, zoneCentroid, cosineSimilarity } from '../lib/knn';
 import { embed, generate } from '../lib/api';
-import { exportGenerationReport } from '../lib/export';
+import { transformNew } from '../lib/umap';
 import MiniMap from '../components/generator/MiniMap';
 import TargetZone from '../components/generator/TargetZone';
 import CandidateCard from '../components/generator/CandidateCard';
@@ -18,16 +18,26 @@ const GUIDES = [
   },
   {
     title: 'Describe what you want and generate',
-    description: 'Write a clear prompt and pick a style. The system generates 10 candidates, embeds them, and ranks by similarity to your target zone.',
+    description: 'Write a clear prompt and pick a style. The system generates 10 candidates, embeds them, projects them onto the map, and ranks by similarity.',
   },
   {
-    title: 'Review results and save',
-    description: 'All 10 candidates are ranked by similarity. Click "Save Top 5 to Corpus" to keep the best ones.',
+    title: 'Review results and export',
+    description: 'All 10 candidates are ranked and plotted on the map. Export the results as CSV to use alongside your corpus.',
   },
 ];
 
 const STYLES = ['Formal', 'Conversational', 'Urgent', 'Playful', 'Minimal', 'Persuasive'];
 const GENERATE_COUNT = 10;
+
+function downloadCSV(content, filename) {
+  const blob = new Blob([content], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function Generator() {
   const { id } = useParams();
@@ -45,8 +55,6 @@ export default function Generator() {
   const [genError, setGenError] = useState(null);
 
   const [candidates, setCandidates] = useState([]);
-  const [saved, setSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     getCorpus(id).then((c) => {
@@ -63,7 +71,6 @@ export default function Generator() {
       setExemplars(neighbors);
       setZoneCenter(doc.embedding);
       setStep(1);
-      setSaved(false);
       setCandidates([]);
       setGenError(null);
     },
@@ -79,20 +86,17 @@ export default function Generator() {
       setExemplars(neighbors);
       setZoneCenter(centroid);
       setStep(1);
-      setSaved(false);
       setCandidates([]);
       setGenError(null);
     },
     [corpus]
   );
 
-  // ── GENERATE: Claude → Voyage → Score ──
   const handleGenerate = async () => {
     if (!corpus || !zoneCenter) return;
     setGenerating(true);
     setCandidates([]);
     setGenError(null);
-    setSaved(false);
 
     try {
       // 1. Generate via Claude
@@ -112,8 +116,8 @@ export default function Generator() {
           style,
           count: GENERATE_COUNT,
         });
-      } catch (apiErr) {
-        throw new Error('Generation API call failed: ' + apiErr.message);
+      } catch (err) {
+        throw new Error('Claude API failed: ' + err.message);
       }
 
       const allRaw = (resp.candidates || []).filter((c) => c && c.content);
@@ -121,25 +125,23 @@ export default function Generator() {
         throw new Error('Claude returned no candidates. Try rephrasing your prompt.');
       }
 
-      setGenStatus(`Generated ${allRaw.length} candidates. Now embedding...`);
-
       // 2. Embed via Voyage AI
+      setGenStatus(`Embedding ${allRaw.length} candidates...`);
       let embeddings;
       try {
         const texts = allRaw.map((c) => c.content);
         const embResp = await embed({ texts, model: corpus.embeddingModel || 'voyage-3.5-lite' });
         embeddings = embResp.embeddings || [];
-      } catch (embErr) {
-        throw new Error('Embedding API call failed: ' + embErr.message);
+      } catch (err) {
+        throw new Error('Embedding API failed: ' + err.message);
       }
 
       if (embeddings.length === 0) {
         throw new Error('Embedding API returned no results.');
       }
 
-      setGenStatus('Ranking by similarity...');
-
-      // 3. Score by cosine similarity
+      // 3. Score + project onto map
+      setGenStatus('Scoring and projecting onto map...');
       const zc = Array.isArray(zoneCenter) ? zoneCenter : Array.from(zoneCenter);
       const results = [];
 
@@ -151,6 +153,20 @@ export default function Generator() {
         try { sim = cosineSimilarity(emb, zc); } catch { continue; }
         if (!isFinite(sim)) continue;
 
+        // Try to project onto existing map
+        let coords = null;
+        if (corpus.umapModel && corpus.umapModel.coords2d && corpus.umapModel.reduced) {
+          try {
+            const projected = transformNew(corpus.umapModel, [emb]);
+            if (projected && projected[0] && Array.isArray(projected[0]) &&
+                projected[0].length >= 2 && isFinite(projected[0][0]) && isFinite(projected[0][1])) {
+              coords = projected[0];
+            }
+          } catch {
+            // projection failed, coords stays null
+          }
+        }
+
         results.push({
           id: `gen_${i}_${Math.random().toString(36).slice(2, 8)}`,
           title: String(allRaw[i].title || 'Untitled'),
@@ -158,9 +174,9 @@ export default function Generator() {
           rationale: String(allRaw[i].rationale || ''),
           similarity: sim,
           placement: sim > 0.8 ? 'on-target' : sim > 0.6 ? 'adjacent' : 'off-target',
+          coords,
           rank: 0,
           accepted: false,
-          _embedding: emb, // stored privately, not rendered
         });
       }
 
@@ -168,7 +184,7 @@ export default function Generator() {
         throw new Error('Could not score any candidates.');
       }
 
-      // 4. Sort and rank
+      // 4. Rank — top 5 marked as accepted
       results.sort((a, b) => b.similarity - a.similarity);
       results.forEach((c, i) => {
         c.rank = i + 1;
@@ -186,36 +202,25 @@ export default function Generator() {
     setGenerating(false);
   };
 
-  // ── SAVE: Separate from generation so it can't crash the results ──
-  const handleSave = async () => {
-    if (saved || saving) return;
-    setSaving(true);
+  // Export generated candidates as CSV
+  const exportCandidatesCSV = () => {
+    if (candidates.length === 0) return;
+    const header = 'rank,title,content,similarity,placement,accepted\n';
+    const rows = candidates.map((c) =>
+      `${c.rank},"${esc(c.title)}","${esc(c.content)}",${c.similarity.toFixed(4)},${c.placement},${c.accepted}`
+    ).join('\n');
+    downloadCSV(header + rows, `generated_candidates_${new Date().toISOString().slice(0, 10)}.csv`);
+  };
 
-    try {
-      const toSave = candidates.filter((c) => c.accepted);
-      const newDocs = toSave.map((c) => ({
-        id: c.id,
-        title: c.title,
-        content: c.content,
-        category: `Generated ${new Date().toISOString().slice(0, 10)}`,
-        embedding: c._embedding,
-      }));
-
-      const updatedCorpus = {
-        ...corpus,
-        documents: [...corpus.documents, ...newDocs],
-        docCount: corpus.documents.length + newDocs.length,
-      };
-
-      await saveCorpus(updatedCorpus);
-      setCorpus(updatedCorpus);
-      setSaved(true);
-    } catch (saveErr) {
-      console.error('Save failed:', saveErr);
-      alert('Save failed: ' + saveErr.message + '\n\nYour generated candidates are still displayed. Try exporting the report instead.');
-    }
-
-    setSaving(false);
+  // Export only the top 5 accepted
+  const exportTopCSV = () => {
+    const top = candidates.filter((c) => c.accepted);
+    if (top.length === 0) return;
+    const header = 'rank,title,content,similarity,placement\n';
+    const rows = top.map((c) =>
+      `${c.rank},"${esc(c.title)}","${esc(c.content)}",${c.similarity.toFixed(4)},${c.placement}`
+    ).join('\n');
+    downloadCSV(header + rows, `generated_top5_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
   if (loading) return <div className="flex items-center justify-center h-96"><div className="text-text-muted">Loading corpus...</div></div>;
@@ -223,6 +228,7 @@ export default function Generator() {
 
   const accepted = candidates.filter((c) => c.accepted);
   const onTarget = candidates.filter((c) => c.placement === 'on-target');
+  const withCoords = candidates.filter((c) => c.coords);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -235,7 +241,8 @@ export default function Generator() {
       </div>
       <h1 className="text-2xl font-semibold text-text-primary mb-2">Document Generator</h1>
       <p className="text-text-muted mb-6">
-        Generate candidates, rank by semantic similarity to your target zone, and save the best to your corpus.
+        Generate candidates, rank by semantic similarity, and see where they land on the map.
+        Export the results as CSV to use alongside your corpus data.
       </p>
 
       <StepGuide steps={GUIDES} currentStep={Math.min(step + 1, 3)} />
@@ -246,10 +253,14 @@ export default function Generator() {
             corpus={corpus}
             onPointSelect={handlePointSelect}
             onLassoSelect={handleLassoSelect}
-            candidates={[]}
+            candidates={withCoords}
           />
           <p className="text-text-muted text-xs mt-2 text-center">
-            {step === 0 ? 'Click a point or lasso-select a region to define your target zone.' : 'Your target zone is selected.'}
+            {step === 0
+              ? 'Click a point or lasso-select a region to define your target zone.'
+              : step === 2 && withCoords.length > 0
+              ? `${withCoords.length} candidates projected. Gold stars = top 5. Gray = rest.`
+              : 'Your target zone is selected.'}
           </p>
         </div>
 
@@ -259,7 +270,7 @@ export default function Generator() {
               exemplars={exemplars}
               onReset={step !== 2 ? () => {
                 setStep(0); setExemplars([]); setZoneCenter(null);
-                setCandidates([]); setSaved(false); setGenError(null);
+                setCandidates([]); setGenError(null);
               } : undefined}
             />
           )}
@@ -269,8 +280,7 @@ export default function Generator() {
               <h3 className="text-text-primary font-medium mb-4">Generation Prompt</h3>
               <div className="mb-3">
                 <label className="block text-sm text-text-muted mb-1">
-                  Domain
-                  <InfoHint text="Context about what these documents are." />
+                  Domain <InfoHint text="Context about what these documents are." />
                 </label>
                 <div className="text-sm text-text-primary font-mono bg-bg-raised px-3 py-2 rounded">
                   {corpus.domain || 'General'}
@@ -278,8 +288,7 @@ export default function Generator() {
               </div>
               <div className="mb-3">
                 <label className="block text-sm text-text-muted mb-1">
-                  I want documents that...
-                  <InfoHint text="Be specific. Describe the type, tone, and topic." />
+                  I want documents that... <InfoHint text="Be specific about type, tone, and topic." />
                 </label>
                 <textarea
                   value={prompt}
@@ -327,7 +336,7 @@ export default function Generator() {
               <p className="text-text-muted text-sm mb-3">{genError}</p>
               <button
                 onClick={() => setGenError(null)}
-                className="border border-border-line text-text-primary px-4 py-2 rounded text-sm hover:border-accent-cyan/50 transition-colors"
+                className="border border-border-line text-text-primary px-4 py-2 rounded text-sm"
               >
                 Try Again
               </button>
@@ -351,42 +360,38 @@ export default function Generator() {
         <div className="mt-8">
           <div className="bg-bg-surface border border-success/30 rounded-lg p-6 mb-6">
             <h2 className="text-xl font-semibold text-text-primary mb-2">
-              {candidates.length} Candidates Ranked by Similarity
+              {candidates.length} Candidates Ranked
             </h2>
             <p className="text-text-muted text-sm mb-4">
               {onTarget.length > 0 && <><span className="text-success font-medium">{onTarget.length} on-target</span> (sim &gt; 0.8). </>}
-              Top 5 are marked for saving. {saved ? 'Saved to corpus.' : 'Click below to save.'}
+              Top 5 are highlighted. Export the results as CSV to keep them alongside your corpus.
             </p>
 
             <div className="flex flex-wrap gap-2">
-              {!saved ? (
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="bg-success text-bg-primary px-5 py-2 rounded text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
-                >
-                  {saving ? 'Saving...' : 'Save Top 5 to Corpus'}
-                </button>
-              ) : (
-                <Link
-                  to={`/corpus/${id}/explore`}
-                  className="bg-accent-cyan text-bg-primary px-5 py-2 rounded text-sm font-medium no-underline hover:opacity-90 transition-opacity"
-                >
-                  View Updated Map
-                </Link>
-              )}
               <button
-                onClick={() => exportGenerationReport(corpus, exemplars, candidates, zoneCenter)}
-                className="border border-border-line text-text-primary px-5 py-2 rounded text-sm hover:border-accent-cyan/50 transition-colors"
+                onClick={exportTopCSV}
+                className="bg-success text-bg-primary px-5 py-2 rounded text-sm font-medium hover:opacity-90 transition-opacity"
               >
-                Export Report
+                Export Top 5 (CSV)
               </button>
               <button
-                onClick={() => { setStep(1); setCandidates([]); setSaved(false); setGenError(null); }}
+                onClick={exportCandidatesCSV}
+                className="border border-border-line text-text-primary px-5 py-2 rounded text-sm hover:border-accent-cyan/50 transition-colors"
+              >
+                Export All {candidates.length} (CSV)
+              </button>
+              <button
+                onClick={() => { setStep(1); setCandidates([]); setGenError(null); }}
                 className="border border-border-line text-text-muted px-5 py-2 rounded text-sm hover:border-accent-cyan/50 transition-colors"
               >
                 Generate Again
               </button>
+              <Link
+                to={`/corpus/${id}/explore`}
+                className="border border-border-line text-text-muted px-5 py-2 rounded text-sm no-underline hover:border-accent-cyan/50 transition-colors"
+              >
+                Back to Map
+              </Link>
             </div>
           </div>
 
@@ -401,3 +406,5 @@ export default function Generator() {
     </div>
   );
 }
+
+function esc(s) { return String(s).replace(/"/g, '""').replace(/\n/g, ' '); }
