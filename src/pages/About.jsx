@@ -79,7 +79,7 @@ export default function About() {
         </p>
         <div className="bg-bg-surface border border-border-line rounded-lg divide-y divide-border-line text-sm">
           {[
-            { term: 'Document', plain: 'Any single piece of text you want to analyze. One email, one product description, one review, one abstract. It can be one sentence or several paragraphs. Each document becomes one dot on the map. In your data file, each row is one document.' },
+            { term: 'Document', plain: 'Any unit of text you want to place on the map. A tweet, a full email, a product description, a book chapter, a film transcript, a patent claim, song lyrics, AI-generated image captions — if it can be expressed as text, it\'s a document. Each one becomes a single dot. One row in your file = one document = one point on the map.' },
             { term: 'Corpus', plain: 'Your collection of documents. It could be 50 emails, 5,000 product descriptions, or 200 research abstracts. Whatever you upload together is your corpus.' },
             { term: 'Embedding', plain: 'A way of converting text into a list of numbers that captures its meaning. Think of it like a GPS coordinate, but for ideas instead of locations. Two documents about the same idea get similar "coordinates" even if they use completely different words.' },
             { term: 'Semantic', plain: 'Just means "related to meaning." When we say "semantic similarity," we mean two documents are about the same thing — not that they use the same words.' },

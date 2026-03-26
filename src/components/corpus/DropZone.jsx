@@ -95,18 +95,28 @@ export default function DropZone({ onDataParsed }) {
       <div className="bg-bg-surface border border-border-line rounded-lg p-5 mb-6">
         <h3 className="text-text-primary font-medium mb-2">What counts as a &ldquo;document&rdquo; in this tool?</h3>
         <p className="text-text-muted text-sm leading-relaxed mb-3">
-          A <strong className="text-text-primary">document</strong> is any single piece of text you want to analyze.
-          It could be one sentence or several paragraphs &mdash; the tool works with both. Each document becomes one dot on the map.
+          A <strong className="text-text-primary">document</strong> is any unit of text you want to place on the map.
+          It can be a single sentence or an entire book. The only requirement is that it&rsquo;s text. If something can be expressed as text, it can be a document.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-text-muted">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-text-muted mb-3">
           <div className="bg-bg-raised rounded p-3">
-            <div className="text-accent-cyan font-medium text-xs mb-1">Short documents</div>
-            Email subject lines, tweet texts, headlines, product titles, taglines, one-liners
+            <div className="text-accent-cyan font-medium text-xs mb-1">Short-form</div>
+            Email subject lines, tweets, headlines, ad copy, product titles, survey responses, taglines, log entries
           </div>
           <div className="bg-bg-raised rounded p-3">
-            <div className="text-accent-cyan font-medium text-xs mb-1">Long documents</div>
-            Full emails, product descriptions, blog posts, research abstracts, chapters, reports
+            <div className="text-accent-cyan font-medium text-xs mb-1">Medium-form</div>
+            Full emails, product descriptions, reviews, job postings, news articles, research abstracts, patent claims
           </div>
+          <div className="bg-bg-raised rounded p-3">
+            <div className="text-accent-cyan font-medium text-xs mb-1">Long-form &amp; creative</div>
+            Blog posts, book chapters, legal briefs, earnings call transcripts, screenplays, lecture notes, policy documents
+          </div>
+        </div>
+        <div className="bg-bg-raised border border-accent-gold/20 rounded p-3 text-sm text-text-muted leading-relaxed">
+          <strong className="text-accent-gold">Think beyond the obvious.</strong> Anything that can be turned into text can be mapped.
+          An entire book? Split it into chapters &mdash; each chapter is a document. A film? Its transcript, its scene descriptions, its reviews.
+          A podcast? Its episode transcripts. A codebase? Each function&rsquo;s docstring. An image archive? Their captions or AI-generated descriptions.
+          A music catalog? Song lyrics. A product catalog? Each product page. If you can put it in a row of a spreadsheet, you can map it.
         </div>
         <p className="text-text-muted text-xs mt-3 leading-relaxed">
           <strong className="text-text-primary">Key rule:</strong> Every row in your file = one document = one dot on the map.
