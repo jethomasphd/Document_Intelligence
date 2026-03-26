@@ -122,7 +122,7 @@ export default function About() {
             {
               num: '6',
               title: 'Generation',
-              desc: 'Select a target zone on the map. The system generates 10 candidates, embeds all of them, projects them onto the map, ranks by proximity to the target, and automatically keeps the top 5. The map is the ground truth: if a generated document lands near your target, it genuinely shares the semantic characteristics of that zone.',
+              desc: 'Select a target zone on the map. The system generates 10 candidates, embeds all of them into the same vector space, projects them onto the 2D map, and ranks by proximity to your target. Gold stars mark the top 5. Export the results as CSV to use alongside your corpus. The map is the ground truth: if a generated document lands near your target, it genuinely shares the semantic characteristics of that zone.',
             },
           ].map((step) => (
             <div key={step.num} className="flex gap-4">

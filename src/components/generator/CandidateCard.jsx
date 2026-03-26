@@ -39,8 +39,8 @@ export default function CandidateCard({ candidate }) {
             {candidate.title || 'Untitled'}
           </h4>
           {candidate.accepted && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-success/20 text-success border border-success/30 shrink-0">
-              Added to Corpus
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-gold/20 text-accent-gold border border-accent-gold/30 shrink-0">
+              Top 5
             </span>
           )}
         </div>

@@ -55,6 +55,7 @@ export default function Generator() {
   const [genError, setGenError] = useState(null);
 
   const [candidates, setCandidates] = useState([]);
+  const [selectedIndices, setSelectedIndices] = useState([]);
 
   useEffect(() => {
     getCorpus(id).then((c) => {
@@ -70,6 +71,9 @@ export default function Generator() {
       const neighbors = knn(doc.embedding, corpus.documents, 10);
       setExemplars(neighbors);
       setZoneCenter(doc.embedding);
+      // Track indices for red highlighting: the clicked point + its neighbors
+      const neighborIndices = neighbors.map((n) => corpus.documents.findIndex((d) => d.id === n.id)).filter((i) => i >= 0);
+      setSelectedIndices([pointIdx, ...neighborIndices]);
       setStep(1);
       setCandidates([]);
       setGenError(null);
@@ -85,6 +89,7 @@ export default function Generator() {
       const neighbors = knn(centroid, corpus.documents, 10);
       setExemplars(neighbors);
       setZoneCenter(centroid);
+      setSelectedIndices(indices);
       setStep(1);
       setCandidates([]);
       setGenError(null);
@@ -254,6 +259,7 @@ export default function Generator() {
             onPointSelect={handlePointSelect}
             onLassoSelect={handleLassoSelect}
             candidates={withCoords}
+            selectedIndices={selectedIndices}
           />
           <p className="text-text-muted text-xs mt-2 text-center">
             {step === 0
@@ -270,7 +276,7 @@ export default function Generator() {
               exemplars={exemplars}
               onReset={step !== 2 ? () => {
                 setStep(0); setExemplars([]); setZoneCenter(null);
-                setCandidates([]); setGenError(null);
+                setCandidates([]); setGenError(null); setSelectedIndices([]);
               } : undefined}
             />
           )}

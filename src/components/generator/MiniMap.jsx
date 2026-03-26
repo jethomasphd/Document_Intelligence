@@ -3,12 +3,15 @@ import Plot from 'react-plotly.js';
 
 const PLOT_COLORS = ['#00d4ff', '#f0a500', '#10b981', '#a855f7', '#f43f5e', '#3b82f6', '#84cc16', '#fb923c'];
 
-export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidates = [] }) {
+export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidates = [], selectedIndices = [] }) {
   const traces = useMemo(() => {
     if (!corpus?.coords2d) return [];
 
+    const selectedSet = new Set(selectedIndices);
+
     const categoryMap = {};
     corpus.documents.forEach((doc, i) => {
+      if (selectedSet.has(i)) return; // exclude selected from normal traces
       const cat = doc.category || 'Uncategorized';
       if (!categoryMap[cat]) categoryMap[cat] = { x: [], y: [], text: [], indices: [] };
       categoryMap[cat].x.push(corpus.coords2d[i][0]);
@@ -39,8 +42,36 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
       },
     }));
 
+    // Highlight selected zone points in red
+    if (selectedSet.size > 0) {
+      const selX = [], selY = [], selText = [];
+      selectedIndices.forEach((i) => {
+        if (corpus.coords2d[i]) {
+          selX.push(corpus.coords2d[i][0]);
+          selY.push(corpus.coords2d[i][1]);
+          selText.push(`TARGET: ${corpus.documents[i]?.title || corpus.documents[i]?.id || i}`);
+        }
+      });
+      if (selX.length > 0) {
+        corpusTraces.push({
+          x: selX,
+          y: selY,
+          text: selText,
+          type: 'scatter',
+          mode: 'markers',
+          name: 'Target Zone',
+          hoverinfo: 'text',
+          marker: {
+            color: '#ef4444',
+            size: 10,
+            symbol: 'circle',
+            line: { color: '#fff', width: 1 },
+          },
+        });
+      }
+    }
+
     // Add candidate points - split into accepted (stars) and others (circles)
-    // Filter to only candidates with valid coords
     const validCandidates = candidates.filter((c) => c.coords && Array.isArray(c.coords) && c.coords.length >= 2);
     if (validCandidates.length > 0) {
       const accepted = validCandidates.filter((c) => c.accepted);
@@ -53,7 +84,7 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
           text: accepted.map((c) => `#${c.rank} ${c.title || 'Generated'} (sim: ${c.similarity?.toFixed(3)})`),
           type: 'scatter',
           mode: 'markers',
-          name: 'Accepted (Top 5)',
+          name: 'Top 5 Generated',
           hoverinfo: 'text',
           marker: {
             color: '#f0a500',
@@ -71,7 +102,7 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
           text: others.map((c) => `#${c.rank} ${c.title || 'Generated'} (sim: ${c.similarity?.toFixed(3)})`),
           type: 'scatter',
           mode: 'markers',
-          name: 'Other Candidates',
+          name: 'Other Generated',
           hoverinfo: 'text',
           marker: {
             color: '#64748b',
@@ -84,7 +115,7 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
     }
 
     return corpusTraces;
-  }, [corpus?.coords2d, corpus?.documents, corpus?.categories, candidates]);
+  }, [corpus?.coords2d, corpus?.documents, corpus?.categories, candidates, selectedIndices]);
 
   if (!corpus?.coords2d) {
     return (
