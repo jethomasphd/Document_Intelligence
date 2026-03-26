@@ -26,6 +26,82 @@ export default function About() {
         </p>
       </section>
 
+      {/* What Can I Do */}
+      <section className="mb-12">
+        <h2 className="text-xl font-semibold text-text-primary mb-3">What Can I Do With My Documents?</h2>
+        <p className="text-text-muted leading-relaxed mb-4">
+          If you have a collection of documents &mdash; any size, any kind &mdash; this tool lets you do things that were previously impossible without reading every single one:
+        </p>
+        <div className="space-y-3 mb-4">
+          {[
+            { q: 'See the big picture', a: 'Upload 500 product descriptions and instantly see which ones sound alike, which ones stand alone, and where there are gaps in your catalog.' },
+            { q: 'Find out why your best content works', a: 'Tag your top-performing emails, blog posts, or ads as a group. The map shows you what they have in common — not in word choice, but in the deeper patterns of how they communicate.' },
+            { q: 'Discover hidden connections', a: 'That legal brief and that marketing email might be saying the same thing in different language. This tool sees through word choice to the meaning underneath.' },
+            { q: 'Compare two groups of documents', a: 'Are your East Coast and West Coast sales teams writing differently? Do your 5-star reviews share themes your 1-star reviews don\'t? Select two groups and see exactly how they overlap or diverge.' },
+            { q: 'Generate more of what works', a: 'Point to the region where your best-performing content lives, and the AI writes new documents designed to belong there. Then it verifies that they actually landed in the right spot.' },
+            { q: 'Find the gaps', a: 'The map shows you not just where your content is, but where it isn\'t. Empty areas between clusters are opportunities — topics adjacent to what you already cover that nobody has written about yet.' },
+          ].map((item, i) => (
+            <div key={i} className="bg-bg-surface border border-border-line rounded-lg p-4">
+              <div className="text-accent-cyan font-medium text-sm mb-1">{item.q}</div>
+              <p className="text-text-muted text-sm leading-relaxed">{item.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* A Concrete Example */}
+      <section className="mb-12">
+        <h2 className="text-xl font-semibold text-text-primary mb-3">An Example: From Spreadsheet to Strategy</h2>
+        <div className="bg-bg-surface border border-accent-gold/20 rounded-lg p-6 text-sm text-text-muted leading-relaxed space-y-3">
+          <p>
+            A marketing team has <strong className="text-text-primary">2,000 email subject lines</strong> from the past year. Some had great open rates, most were average, some flopped. They've been writing new subject lines based on gut feeling.
+          </p>
+          <p>
+            They upload all 2,000 subject lines and tag each one as <strong className="text-accent-gold">"Top Performer"</strong> or <strong className="text-text-primary">"Other"</strong> based on open rates.
+          </p>
+          <p>
+            The map reveals something surprising: <strong className="text-text-primary">their top performers cluster into two tight groups</strong> — one around urgency-driven language, another around curiosity-driven language. The average performers are scattered everywhere.
+          </p>
+          <p>
+            They also spot a <strong className="text-text-primary">gap</strong>: a region near both winning clusters where no subject lines exist at all. It seems to be where urgency and curiosity overlap.
+          </p>
+          <p>
+            They point the Generator at that gap and ask it to write 10 subject lines that blend urgency and curiosity. The AI generates them, checks that they land in the right area on the map, and keeps the best 5. The team now has <strong className="text-accent-gold">data-informed candidates</strong> for their next campaign — not guesses.
+          </p>
+        </div>
+      </section>
+
+      {/* Plain English Glossary */}
+      <section className="mb-12">
+        <h2 className="text-xl font-semibold text-text-primary mb-3">Plain English Glossary</h2>
+        <p className="text-text-muted leading-relaxed mb-4">
+          This tool uses some technical vocabulary. Here's what every term actually means:
+        </p>
+        <div className="bg-bg-surface border border-border-line rounded-lg divide-y divide-border-line text-sm">
+          {[
+            { term: 'Corpus', plain: 'Your collection of documents. It could be 50 emails, 5,000 product descriptions, or 200 research abstracts. Whatever you upload together is your corpus.' },
+            { term: 'Embedding', plain: 'A way of converting text into a list of numbers that captures its meaning. Think of it like a GPS coordinate, but for ideas instead of locations. Two documents about the same idea get similar "coordinates" even if they use completely different words.' },
+            { term: 'Semantic', plain: 'Just means "related to meaning." When we say "semantic similarity," we mean two documents are about the same thing — not that they use the same words.' },
+            { term: 'Vector / Vector Space', plain: 'The list of numbers that represents a document (the embedding). "Vector space" is just the mathematical space where all these number-lists live. Think of it as the map before it\'s drawn on screen.' },
+            { term: 'Cosine Similarity', plain: 'A score from 0 to 1 that measures how similar two documents are in meaning. 0.9 = almost the same thing. 0.5 = loosely related. 0.1 = totally different topics. It\'s like a "similarity percentage" for meaning.' },
+            { term: 'UMAP', plain: 'The algorithm that takes the invisible, high-dimensional "idea coordinates" and flattens them into a 2D map you can actually look at — while keeping similar documents close together. It\'s the thing that makes the map possible.' },
+            { term: 'PCA', plain: 'A pre-processing step that removes noise from the data before UMAP draws the map. Like cleaning a photograph before printing it — the picture is clearer.' },
+            { term: 'Dimensionality Reduction', plain: 'The process of going from 1,024 numbers per document (too many to visualize) down to just 2 numbers (an X and Y position on a flat map). That\'s what PCA and UMAP do together.' },
+            { term: 'Cluster', plain: 'A group of dots that bunch together on the map. When documents cluster, it means they\'re about similar things.' },
+            { term: 'Nearest Neighbors', plain: 'The documents closest to any given document on the map. If you click a document, its nearest neighbors are the ones most similar in meaning.' },
+            { term: 'Target Zone', plain: 'A region you select on the map where you want to generate new content. You\'re telling the AI: "write something that belongs here."' },
+            { term: 'Centroid', plain: 'The center point of a group of documents. When you select a target zone, the system calculates the centroid — the "average position" — and aims new content at it.' },
+            { term: 'Population', plain: 'A named group of documents within your corpus, defined by category. For example, "Top Performers" and "Others" are two populations.' },
+            { term: 'Projection', plain: 'Placing a new document onto the existing map based on its meaning. When the system generates a new document, it "projects" it onto the map to see where it actually lands.' },
+          ].map((item, i) => (
+            <div key={i} className="flex gap-4 p-3">
+              <div className="text-accent-cyan font-mono font-medium w-48 shrink-0">{item.term}</div>
+              <div className="text-text-muted">{item.plain}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* The Insight */}
       <section className="mb-12">
         <h2 className="text-xl font-semibold text-text-primary mb-3">The Insight: Meaning Has Geometry</h2>

@@ -1,10 +1,26 @@
 # Document Intelligence
 
-**Meaning has geometry.** Documents with similar meaning occupy the same neighborhoods in high-dimensional vector space. Document Intelligence makes that geometry visible, navigable, and generative.
+**See what your documents mean — all of them, all at once.**
 
-Upload a collection of documents — emails, speeches, product descriptions, research abstracts, anything — and watch them arrange themselves into a semantic landscape. Explore clusters. Compare populations. Then generate entirely new documents that target specific regions of meaning.
+You have hundreds or thousands of documents. Emails, product descriptions, research papers, marketing copy. Each one was written for a reason, but you can only read them one at a time. The patterns that connect them — what works, what doesn't, what's missing — are invisible at scale.
 
-[Live Demo](https://document-intelligence.pages.dev) | [Architecture](#architecture) | [User Guide](#user-guide) | [Deployment](#deployment)
+Document Intelligence changes that. Upload your documents, and they arrange themselves on a visual map based on what they *mean*. Similar documents cluster together. Gaps become visible. Then you can generate new content that targets any region of that map — and verify it landed where you intended.
+
+[Live Demo](https://document-intelligence.pages.dev) | [What Can I Do With This?](#what-can-i-do-with-this) | [User Guide](#user-guide) | [Architecture](#architecture) | [Glossary](#plain-english-glossary) | [Deployment](#deployment)
+
+---
+
+## What Can I Do With This?
+
+| If you have... | You can... |
+|----------------|-----------|
+| **Marketing emails** | See which subject lines sound alike, find what your top performers have in common, generate new ones that match the pattern |
+| **Product descriptions** | Map your entire catalog by meaning, spot coverage gaps, auto-generate descriptions for new products that fit existing categories |
+| **Research papers** | Visualize how fields overlap, find interdisciplinary boundary zones, discover which papers bridge different communities |
+| **Customer reviews** | Separate 5-star language from 1-star language visually, see what themes distinguish satisfied customers |
+| **Any document collection** | Find patterns across hundreds of files that you'd never spot reading one at a time |
+
+The **Top Performer Strategy** is especially powerful: tag your best-performing documents (highest open rates, most sales, best engagement) as a category. The map shows you where winners cluster, what they have in common, and where to aim new content.
 
 ---
 
@@ -346,6 +362,26 @@ Document_Intelligence/
 | **Job postings** by industry | How industries describe roles differently | Postings that match a target industry's semantic signature |
 | **Research abstracts** by field | Where disciplines overlap; emerging interdisciplinary zones | Abstracts positioned at the boundary of two fields |
 | **Top performers** vs. rest | What semantic patterns distinguish winners | More content like your best-performing documents |
+
+---
+
+## Plain English Glossary
+
+New to this? Here's what every technical term means in plain language:
+
+| Term | What It Actually Means |
+|------|----------------------|
+| **Corpus** | Your collection of documents — whatever you upload together |
+| **Embedding** | A way of converting text into numbers that capture its meaning. Like GPS coordinates, but for ideas instead of locations |
+| **Semantic** | "Related to meaning." Semantic similarity = two documents are about the same thing, even if they use different words |
+| **Cosine Similarity** | A score from 0 to 1 measuring how similar two documents are in meaning. Think of it as a "similarity percentage" for ideas |
+| **UMAP** | The algorithm that draws the map — takes invisible "idea coordinates" and flattens them to 2D while keeping similar documents close together |
+| **PCA** | A pre-processing step that cleans up the data before the map is drawn. Like cleaning a photo before printing |
+| **Cluster** | A group of dots that bunch together on the map — documents about similar things |
+| **Nearest Neighbors** | The documents most similar in meaning to any given document |
+| **Target Zone** | A region you select on the map where you want to generate new content |
+| **Population** | A named group of documents within your corpus (e.g., "Top Performers" vs. "Others") |
+| **Projection** | Placing a new document onto the existing map to see where it lands based on its meaning |
 
 ---
 

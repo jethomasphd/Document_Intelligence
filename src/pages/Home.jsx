@@ -46,8 +46,8 @@ export default function Home() {
         <div>
           <h1 className="text-3xl font-semibold text-text-primary mb-2">Document Intelligence</h1>
           <p className="text-text-muted max-w-2xl leading-relaxed">
-            Upload a collection of documents and transform them into a navigable semantic landscape.
-            See what your content means as a whole. Find patterns. Generate what's missing.
+            Upload your documents and see them arranged on a map by what they mean &mdash; not by keywords or folders, but by actual meaning.
+            Find patterns you can't see by reading. Spot gaps. Then generate new content that fills them.
           </p>
         </div>
         <Link
