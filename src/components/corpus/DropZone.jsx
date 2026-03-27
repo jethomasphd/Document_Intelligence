@@ -3,9 +3,9 @@ import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 
 const DATA_SPECS = [
-  { format: 'CSV', desc: 'Comma-separated values with a header row. Each row = one document.', example: 'id,title,content,category' },
-  { format: 'JSON', desc: 'An array of objects. Each object = one document.', example: '[{"title": "...", "content": "..."}]' },
-  { format: 'TXT', desc: 'Plain text. Each line = one document.', example: 'One document per line' },
+  { format: 'CSV', desc: 'Comma-separated values with a header row. Each row = one document.', example: 'id,title,content,category\n1,"Q3 Update","Revenue grew 15%...",earnings' },
+  { format: 'JSON', desc: 'An array of objects. Each object = one document.', example: '[{"title": "Q3 Update", "content": "Revenue grew 15%...", "category": "earnings"}]' },
+  { format: 'TXT', desc: 'Plain text. Each line = one document (no columns, just text).', example: 'Revenue grew 15% in Q3\nNew product launch exceeded targets' },
 ];
 
 export default function DropZone({ onDataParsed }) {
@@ -91,6 +91,79 @@ export default function DropZone({ onDataParsed }) {
 
   return (
     <div>
+      {/* What counts as a "document" */}
+      <div className="bg-bg-surface border border-border-line rounded-lg p-5 mb-6">
+        <h3 className="text-text-primary font-medium mb-2">What counts as a &ldquo;document&rdquo; in this tool?</h3>
+        <p className="text-text-muted text-sm leading-relaxed mb-3">
+          A <strong className="text-text-primary">document</strong> is any unit of text you want to place on the map.
+          It can be a single sentence or an entire book. The only requirement is that it&rsquo;s text. If something can be expressed as text, it can be a document.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-text-muted mb-3">
+          <div className="bg-bg-raised rounded p-3">
+            <div className="text-accent-cyan font-medium text-xs mb-1">Short-form</div>
+            Email subject lines, tweets, headlines, ad copy, product titles, survey responses, taglines, log entries
+          </div>
+          <div className="bg-bg-raised rounded p-3">
+            <div className="text-accent-cyan font-medium text-xs mb-1">Medium-form</div>
+            Full emails, product descriptions, reviews, job postings, news articles, research abstracts, patent claims
+          </div>
+          <div className="bg-bg-raised rounded p-3">
+            <div className="text-accent-cyan font-medium text-xs mb-1">Long-form &amp; creative</div>
+            Blog posts, book chapters, legal briefs, earnings call transcripts, screenplays, lecture notes, policy documents
+          </div>
+        </div>
+        <div className="bg-bg-raised border border-accent-gold/20 rounded p-3 text-sm text-text-muted leading-relaxed">
+          <strong className="text-accent-gold">Think beyond the obvious.</strong> Anything that can be turned into text can be mapped.
+          An entire book? Split it into chapters &mdash; each chapter is a document. A film? Its transcript, its scene descriptions, its reviews.
+          A podcast? Its episode transcripts. A codebase? Each function&rsquo;s docstring. An image archive? Their captions or AI-generated descriptions.
+          A music catalog? Song lyrics. A product catalog? Each product page. If you can put it in a row of a spreadsheet, you can map it.
+        </div>
+        <p className="text-text-muted text-xs mt-3 leading-relaxed">
+          <strong className="text-text-primary">Key rule:</strong> Every row in your file = one document = one dot on the map.
+          A file with 500 rows gives you a map of 500 points. The <strong className="text-text-primary">content</strong> column
+          is the text that gets analyzed &mdash; everything else (title, category, ID) is metadata for labeling and filtering.
+        </p>
+      </div>
+
+      {/* Data structure guide */}
+      <div className="bg-bg-surface border border-accent-cyan/20 rounded-lg p-5 mb-6">
+        <h3 className="text-text-primary font-medium mb-2">How to structure your data</h3>
+        <p className="text-text-muted text-sm leading-relaxed mb-3">
+          Your file should have <strong className="text-text-primary">one row per document</strong> and columns for each piece of information.
+          Only one column is required: the text content. Everything else is optional but useful.
+        </p>
+        <div className="space-y-2 text-sm">
+          <div className="flex items-start gap-3">
+            <span className="text-accent-cyan font-mono text-xs font-bold bg-accent-cyan/10 px-2 py-0.5 rounded shrink-0 mt-0.5">Required</span>
+            <div>
+              <strong className="text-text-primary">Content</strong>
+              <span className="text-text-muted"> &mdash; The actual text to analyze. This is the substance: the email body, the product description, the review text, the abstract. Longer and richer text produces better results.</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-text-muted font-mono text-xs bg-bg-raised px-2 py-0.5 rounded shrink-0 mt-0.5">Optional</span>
+            <div>
+              <strong className="text-text-primary">Title</strong>
+              <span className="text-text-muted"> &mdash; A short label shown on the map and in lists. For emails: the subject line. For products: the product name. If you don't have one, the first few words of content are used.</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-text-muted font-mono text-xs bg-bg-raised px-2 py-0.5 rounded shrink-0 mt-0.5">Optional</span>
+            <div>
+              <strong className="text-text-primary">Category</strong>
+              <span className="text-text-muted"> &mdash; A group label that color-codes your map and enables population comparison. Examples: &ldquo;Top Performer&rdquo; vs. &ldquo;Other&rdquo;, department names, product lines, star ratings.</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-text-muted font-mono text-xs bg-bg-raised px-2 py-0.5 rounded shrink-0 mt-0.5">Optional</span>
+            <div>
+              <strong className="text-text-primary">ID</strong>
+              <span className="text-text-muted"> &mdash; A unique identifier (SKU, ISBN, transaction ID). If not provided, rows are numbered automatically.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${

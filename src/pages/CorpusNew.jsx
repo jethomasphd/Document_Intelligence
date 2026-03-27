@@ -10,15 +10,15 @@ const STEPS = ['Upload', 'Configure', 'Embed'];
 const GUIDES = [
   {
     title: 'Upload your document file',
-    description: 'Drag and drop a CSV, JSON, or plain text file. CSV files should have a header row — each row becomes one document. JSON files should be an array of objects. Plain text files treat each line as a separate document.',
+    description: 'Start by choosing a file. Each row in your file becomes one document on the map. Read the guide below to understand what counts as a "document" and how to structure your data.',
   },
   {
-    title: 'Map your columns and name your corpus',
-    description: 'Tell us which column contains the text to embed (required). Optionally map title, ID, and category columns. The category column splits your documents into color-coded populations for comparison.',
+    title: 'Name your corpus and map your columns',
+    description: 'Tell us which column contains the text you want to analyze (the Content field — this is required). Then optionally assign Title, Category, and ID columns. Fields with a cyan highlight still need your attention.',
   },
   {
     title: 'Embedding in progress',
-    description: 'Each document is being sent to Voyage AI to compute a 1024-dimensional semantic embedding. Documents are batched (100 at a time) with automatic retry on rate limits. This typically takes 30-60 seconds for 1,000 documents.',
+    description: 'Your documents are being converted into numerical representations that capture their meaning. This happens in batches with automatic retry. Typically 30–60 seconds for 1,000 documents. You\'ll be redirected to the map when it finishes.',
   },
 ];
 

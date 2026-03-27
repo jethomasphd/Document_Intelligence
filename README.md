@@ -265,14 +265,24 @@ worker/
 
 ## Example Use Cases
 
+*If it can be expressed as text, you can map it.*
+
 | Corpus | What You Learn | What You Generate |
 |--------|---------------|-------------------|
-| Email subject lines by department | Which departments write similarly | Subjects matching a specific voice |
-| Product descriptions by category | How product language clusters | Descriptions for new products |
-| Customer reviews by rating | What separates 5-star from 1-star | Review text targeting a sentiment zone |
-| Job postings by industry | How industries describe roles | Postings matching an industry signature |
-| Research abstracts by field | Where disciplines overlap | Abstracts at the boundary of two fields |
-| Top performers vs. rest | What semantic patterns distinguish winners | More content like your best |
+| **Email subject lines** by department | Which departments write similarly; who's an outlier | Subjects matching a specific department's voice |
+| **Product descriptions** by category | How product language clusters; where categories blur | Descriptions for new products that fit an existing category |
+| **Customer reviews** by star rating | What separates 5-star language from 1-star | Review text targeting a specific sentiment zone |
+| **Book chapters** across a series | How themes evolve; which chapters echo each other | New chapters that match a specific narrative tone |
+| **Film transcripts** by genre | How genres talk differently; where they converge | Dialogue targeting a specific genre's voice |
+| **Podcast transcripts** by show | What makes each show's voice distinct | Episode intros matching a specific show's style |
+| **Song lyrics** by decade | How pop language shifts over time | Lyrics in the style of a specific era |
+| **Patent claims** by field | Where innovation clusters; interdisciplinary overlaps | Claims positioned at the boundary of two fields |
+| **Research abstracts** by discipline | Where fields overlap; emerging cross-disciplinary zones | Abstracts bridging two research communities |
+| **Job postings** by industry | How industries describe similar roles differently | Postings matching a target industry's language |
+| **Political speeches** by era | How rhetoric shifts; which eras echo each other | Speeches in the style of a specific period |
+| **Image captions** (AI-described) by collection | Visual themes that cluster; compositional patterns | Captions for images that belong in a specific zone |
+| **Code docstrings** by module | Which parts of a codebase are semantically related | Documentation matching a module's voice |
+| **Top performers** vs. rest | What semantic patterns distinguish winners | More content like your best-performing documents |
 
 ---
 
@@ -282,6 +292,7 @@ New to this? Here's what every technical term means in plain language:
 
 | Term | What It Actually Means |
 |------|----------------------|
+| **Document** | Any unit of text you want to place on the map. A tweet, a full email, a book chapter, a film transcript, a patent claim, song lyrics, AI-generated image captions — if it can be expressed as text, it's a document. One row = one dot on the map |
 | **Corpus** | Your collection of documents — whatever you upload together |
 | **Embedding** | A way of converting text into numbers that capture its meaning. Like GPS coordinates, but for ideas instead of locations |
 | **Semantic** | "Related to meaning." Semantic similarity = two documents are about the same thing, even if they use different words |
