@@ -1,13 +1,32 @@
 import { UMAP } from 'umap-js';
 import { PCA } from 'ml-pca';
 
+const yieldToEventLoop = () => new Promise((r) => setTimeout(r, 0));
+
+function pickEpochs(nSamples) {
+  if (nSamples < 50) return 500;
+  if (nSamples < 500) return 300;
+  if (nSamples < 2000) return 200;
+  if (nSamples < 5000) return 150;
+  if (nSamples < 10000) return 100;
+  return 75;
+}
+
 export async function reduceToPlot(embeddings, options = {}) {
   const {
     pcaDims = 50,
     nNeighbors = 15,
     minDist = 0.1,
-    nEpochs = 200,
+    nEpochs,
+    onProgress,
   } = options;
+
+  const report = (phase, value, total) => {
+    if (onProgress) onProgress({ phase, value, total });
+  };
+
+  report('preparing', 0, 1);
+  await yieldToEventLoop();
 
   // Convert to plain arrays if needed
   const matrix = embeddings.map((e) =>
@@ -15,6 +34,9 @@ export async function reduceToPlot(embeddings, options = {}) {
   );
 
   // Step 1: PCA to reduce dimensions (if embedding dim > pcaDims)
+  report('pca', 0, 1);
+  await yieldToEventLoop();
+
   let reduced = matrix;
   let pcaModel = null;
   if (matrix[0].length > pcaDims) {
@@ -22,18 +44,28 @@ export async function reduceToPlot(embeddings, options = {}) {
     reduced = pcaModel.predict(matrix, { nComponents: pcaDims }).to2DArray();
   }
 
+  report('pca', 1, 1);
+  await yieldToEventLoop();
+
   // Step 2: UMAP to 2D
   const nSamples = reduced.length;
   const effectiveNeighbors = Math.min(nNeighbors, Math.max(2, nSamples - 1));
+  const targetEpochs = nEpochs ?? pickEpochs(nSamples);
 
   const umap = new UMAP({
     nNeighbors: effectiveNeighbors,
     minDist,
     nComponents: 2,
-    nEpochs: Math.min(nEpochs, nSamples < 50 ? 500 : nEpochs),
+    nEpochs: targetEpochs,
   });
 
-  const coords2d = umap.fit(reduced);
+  // fitAsync yields to the event loop between epochs so the UI stays responsive.
+  // The callback receives the current epoch index; we report progress and abort if requested.
+  report('umap', 0, targetEpochs);
+  const coords2d = await umap.fitAsync(reduced, (epoch) => {
+    report('umap', epoch, targetEpochs);
+    return true; // continue
+  });
 
   return {
     coords2d,
