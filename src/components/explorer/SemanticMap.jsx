@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import Plot from 'react-plotly.js';
 import { reduceToPlot } from '../../lib/umap';
 import { saveCorpus } from '../../lib/storage';
@@ -6,24 +6,39 @@ import useStore from '../../store';
 
 const PLOT_COLORS = ['#00d4ff', '#f0a500', '#10b981', '#a855f7', '#f43f5e', '#3b82f6', '#84cc16', '#fb923c'];
 
+// Beyond this many points, switch from SVG scatter to WebGL. SVG falls over
+// past a few thousand markers; scattergl handles 100K+ smoothly.
+const SCATTERGL_THRESHOLD = 1500;
+
 export default function SemanticMap({ corpus, setCorpus }) {
   const [computing, setComputing] = useState(false);
+  const [progress, setProgress] = useState(null);
+  const computingRef = useRef(false);
   const setSelectedPoint = useStore((s) => s.setSelectedPoint);
   const setLassoSelection = useStore((s) => s.setLassoSelection);
 
   useEffect(() => {
-    if (corpus && !corpus.coords2d && !computing) {
+    if (corpus && !corpus.coords2d && !computingRef.current) {
       computeUMAP();
     }
   }, [corpus]);
 
   const computeUMAP = async () => {
     if (!corpus || corpus.documents.length < 3) return;
+    computingRef.current = true;
     setComputing(true);
+    setProgress({ phase: 'preparing', value: 0, total: 1 });
+
+    // Yield once so React flushes the "computing" UI before we enter the
+    // synchronous PCA / UMAP-init phase. Without this the loading state
+    // never paints for large corpora.
+    await new Promise((r) => setTimeout(r, 0));
 
     try {
       const embeddings = corpus.documents.map((d) => d.embedding);
-      const { coords2d, umapModel } = await reduceToPlot(embeddings);
+      const { coords2d, umapModel } = await reduceToPlot(embeddings, {
+        onProgress: (p) => setProgress(p),
+      });
 
       const updated = { ...corpus, coords2d, umapModel };
       setCorpus(updated);
@@ -32,13 +47,21 @@ export default function SemanticMap({ corpus, setCorpus }) {
       console.error('UMAP computation failed:', e);
     }
 
+    computingRef.current = false;
     setComputing(false);
+    setProgress(null);
   };
 
   const selectedPoint = useStore((s) => s.selectedPoint);
 
   const traces = useMemo(() => {
     if (!corpus?.coords2d) return [];
+
+    const nPoints = corpus.documents.length;
+    const useGL = nPoints > SCATTERGL_THRESHOLD;
+    const traceType = useGL ? 'scattergl' : 'scatter';
+    const markerSize = nPoints > 5000 ? 4 : nPoints > 2000 ? 5 : 6;
+    const markerOpacity = nPoints > 5000 ? 0.6 : 0.8;
 
     const categoryMap = {};
 
@@ -67,14 +90,14 @@ export default function SemanticMap({ corpus, setCorpus }) {
       y: categoryMap[cat].y,
       text: categoryMap[cat].text,
       customdata: categoryMap[cat].indices,
-      type: 'scatter',
+      type: traceType,
       mode: 'markers',
       name: cat,
       hoverinfo: 'text',
       marker: {
         color: colorAssignment[cat] || PLOT_COLORS[ci % PLOT_COLORS.length],
-        size: 6,
-        opacity: 0.8,
+        size: markerSize,
+        opacity: markerOpacity,
       },
     }));
 
@@ -86,7 +109,7 @@ export default function SemanticMap({ corpus, setCorpus }) {
           x: [corpus.coords2d[idx][0]],
           y: [corpus.coords2d[idx][1]],
           text: [`<b>SELECTED:</b> ${selectedPoint.title || selectedPoint.id}`],
-          type: 'scatter',
+          type: traceType,
           mode: 'markers',
           name: 'Selected',
           hoverinfo: 'text',
@@ -104,14 +127,39 @@ export default function SemanticMap({ corpus, setCorpus }) {
   }, [corpus?.coords2d, corpus?.documents, corpus?.categories, selectedPoint]);
 
   if (computing) {
+    const phaseLabel = {
+      preparing: 'Preparing embeddings...',
+      pca: 'Reducing dimensions (PCA)...',
+      umap: 'Optimizing 2D layout (UMAP)...',
+    }[progress?.phase] || 'Computing UMAP projection...';
+
+    const pct = progress && progress.total > 0
+      ? Math.min(100, Math.round((progress.value / progress.total) * 100))
+      : null;
+    const isUmap = progress?.phase === 'umap';
+
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="text-text-primary mb-2">Computing UMAP projection...</div>
-          <p className="text-text-muted text-sm">This may take a moment for large corpora.</p>
-          <div className="mt-4 w-48 mx-auto h-1 bg-bg-raised rounded overflow-hidden">
-            <div className="h-full bg-accent-cyan rounded animate-pulse w-full" />
+          <div className="text-text-primary mb-2">{phaseLabel}</div>
+          <p className="text-text-muted text-sm">
+            {corpus.documents.length.toLocaleString()} documents — this may take a minute for large corpora.
+          </p>
+          <div className="mt-4 w-64 mx-auto h-1 bg-bg-raised rounded overflow-hidden">
+            {isUmap && pct !== null ? (
+              <div
+                className="h-full bg-accent-cyan rounded transition-all duration-300"
+                style={{ width: `${pct}%` }}
+              />
+            ) : (
+              <div className="h-full bg-accent-cyan rounded animate-pulse w-full" />
+            )}
           </div>
+          {isUmap && pct !== null && (
+            <p className="text-text-muted text-xs font-mono mt-2">
+              epoch {progress.value} / {progress.total} ({pct}%)
+            </p>
+          )}
         </div>
       </div>
     );
