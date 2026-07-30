@@ -40,10 +40,12 @@ npm run lint         # ESLint
 
 ## Important Notes
 - All heavy computation (UMAP, PCA, KNN) runs client-side in the browser
-- Embeddings are base64-encoded Float32Arrays in IndexedDB for storage efficiency
+- The map projection (PCA + UMAP) runs in a Web Worker (`src/lib/projection.worker.js`, math in `src/lib/projectionCore.js`) with a main-thread fallback; PCA is a sampled covariance + subspace-iteration solve, not a full SVD
+- Embeddings are stored in IndexedDB as native Float32Arrays (structured clone); corpora saved by older versions used base64 strings and are decoded on read, upgraded on next save
+- Each corpus has a lightweight `corpusmeta:<id>` record so listing corpora never loads full documents
 - Generator flow: generates 10 candidates → embeds all → projects onto map → ranks by cosine similarity → marks top 5 → exports as CSV (does NOT save to corpus)
 - Corpus JSON export includes embeddings (full 1024-dim vectors)
-- The `umapModel` stored on corpus includes PCA model data for projecting new points
+- The `umapModel` stored on corpus includes PCA model data for projecting new points; v2 models store packed Float32Arrays (`reducedPacked`, `pcaMean`, `pcaComponents`), v1 models (`reduced`, `pcaLoadings`) are still readable via a legacy path in `src/lib/umap.js`
 - `functions/` directory was removed — all API logic lives in `worker/index.js`
 - Do NOT modify `worker/index.js` without also updating the deployed Worker
 
