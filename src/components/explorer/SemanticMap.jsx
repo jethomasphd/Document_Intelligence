@@ -42,7 +42,11 @@ export default function SemanticMap({ corpus, setCorpus }) {
 
       const updated = { ...corpus, coords2d, umapModel };
       setCorpus(updated);
-      await saveCorpus(updated);
+      // Persist in the background — don't hold up rendering the map on the
+      // IndexedDB write, which can take a while for large corpora.
+      saveCorpus(updated).catch((e) => {
+        console.error('Failed to persist projection:', e);
+      });
     } catch (e) {
       console.error('UMAP computation failed:', e);
     }
@@ -130,12 +134,14 @@ export default function SemanticMap({ corpus, setCorpus }) {
     const phaseLabel = {
       preparing: 'Preparing embeddings...',
       pca: 'Reducing dimensions (PCA)...',
+      'umap-init': 'Building nearest-neighbor graph...',
       umap: 'Optimizing 2D layout (UMAP)...',
     }[progress?.phase] || 'Computing UMAP projection...';
 
     const pct = progress && progress.total > 0
       ? Math.min(100, Math.round((progress.value / progress.total) * 100))
       : null;
+    const hasPct = progress?.phase === 'umap' || progress?.phase === 'pca';
     const isUmap = progress?.phase === 'umap';
 
     return (
@@ -146,7 +152,7 @@ export default function SemanticMap({ corpus, setCorpus }) {
             {corpus.documents.length.toLocaleString()} documents — this may take a minute for large corpora.
           </p>
           <div className="mt-4 w-64 mx-auto h-1 bg-bg-raised rounded overflow-hidden">
-            {isUmap && pct !== null ? (
+            {hasPct && pct !== null ? (
               <div
                 className="h-full bg-accent-cyan rounded transition-all duration-300"
                 style={{ width: `${pct}%` }}
@@ -158,6 +164,11 @@ export default function SemanticMap({ corpus, setCorpus }) {
           {isUmap && pct !== null && (
             <p className="text-text-muted text-xs font-mono mt-2">
               epoch {progress.value} / {progress.total} ({pct}%)
+            </p>
+          )}
+          {progress?.phase === 'pca' && pct !== null && (
+            <p className="text-text-muted text-xs font-mono mt-2">
+              {progress.value.toLocaleString()} / {progress.total.toLocaleString()} ({pct}%)
             </p>
           )}
         </div>

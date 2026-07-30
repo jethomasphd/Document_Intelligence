@@ -3,10 +3,15 @@ import Plot from 'react-plotly.js';
 
 const PLOT_COLORS = ['#00d4ff', '#f0a500', '#10b981', '#a855f7', '#f43f5e', '#3b82f6', '#84cc16', '#fb923c'];
 
+// Same threshold as SemanticMap: SVG scatter falls over past a few thousand
+// markers, so switch to WebGL for large corpora.
+const SCATTERGL_THRESHOLD = 1500;
+
 export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidates = [], selectedIndices = [] }) {
   const traces = useMemo(() => {
     if (!corpus?.coords2d) return [];
 
+    const traceType = corpus.documents.length > SCATTERGL_THRESHOLD ? 'scattergl' : 'scatter';
     const selectedSet = new Set(selectedIndices);
 
     const categoryMap = {};
@@ -31,7 +36,7 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
       y: categoryMap[cat].y,
       text: categoryMap[cat].text,
       customdata: categoryMap[cat].indices,
-      type: 'scatter',
+      type: traceType,
       mode: 'markers',
       name: cat,
       hoverinfo: 'text',
@@ -57,7 +62,7 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
           x: selX,
           y: selY,
           text: selText,
-          type: 'scatter',
+          type: traceType,
           mode: 'markers',
           name: 'Target Zone',
           hoverinfo: 'text',
@@ -82,7 +87,7 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
           x: accepted.map((c) => c.coords[0]),
           y: accepted.map((c) => c.coords[1]),
           text: accepted.map((c) => `#${c.rank} ${c.title || 'Generated'} (sim: ${c.similarity?.toFixed(3)})`),
-          type: 'scatter',
+          type: traceType,
           mode: 'markers',
           name: 'Top 5 Generated',
           hoverinfo: 'text',
@@ -100,7 +105,7 @@ export default function MiniMap({ corpus, onPointSelect, onLassoSelect, candidat
           x: others.map((c) => c.coords[0]),
           y: others.map((c) => c.coords[1]),
           text: others.map((c) => `#${c.rank} ${c.title || 'Generated'} (sim: ${c.similarity?.toFixed(3)})`),
-          type: 'scatter',
+          type: traceType,
           mode: 'markers',
           name: 'Other Generated',
           hoverinfo: 'text',

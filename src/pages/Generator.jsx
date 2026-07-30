@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getCorpus } from '../lib/storage';
 import { knn, zoneCentroid, cosineSimilarity } from '../lib/knn';
 import { embed, generate } from '../lib/api';
-import { transformNew } from '../lib/umap';
+import { transformNew, canTransform } from '../lib/umap';
 import MiniMap from '../components/generator/MiniMap';
 import TargetZone from '../components/generator/TargetZone';
 import CandidateCard from '../components/generator/CandidateCard';
@@ -160,7 +160,7 @@ export default function Generator() {
 
         // Try to project onto existing map
         let coords = null;
-        if (corpus.umapModel && corpus.umapModel.coords2d && corpus.umapModel.reduced) {
+        if (canTransform(corpus.umapModel)) {
           try {
             const projected = transformNew(corpus.umapModel, [emb]);
             if (projected && projected[0] && Array.isArray(projected[0]) &&
