@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="600" viewBox="0 0 1300 600" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2b5fad"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1300" height="600" fill="#ffffff"/>
+
+  <!-- ================= BROWSER PANEL ================= -->
+  <rect x="24" y="28" width="520" height="544" rx="14" fill="#f5f7fa" stroke="#16202e" stroke-width="2"/>
+  <text x="284" y="62" text-anchor="middle" font-size="19" font-weight="bold" fill="#16202e" letter-spacing="2">BROWSER — THE CLIENT</text>
+  <text x="284" y="84" text-anchor="middle" font-size="14" fill="#5b6675" font-style="italic">all corpus data · all analytical computation</text>
+
+  <!-- Application sub-box -->
+  <rect x="48" y="102" width="472" height="118" rx="8" fill="#ffffff" stroke="#c6cdd8" stroke-width="1.5"/>
+  <text x="66" y="128" font-size="15" font-weight="bold" fill="#2b5fad">React single-page application</text>
+  <g font-size="14" fill="#16202e">
+    <rect x="66" y="142" width="126" height="28" rx="14" fill="#eef2f8" stroke="#c6cdd8" stroke-width="1"/>
+    <text x="129" y="161" text-anchor="middle">Corpus Builder</text>
+    <rect x="202" y="142" width="94" height="28" rx="14" fill="#eef2f8" stroke="#c6cdd8" stroke-width="1"/>
+    <text x="249" y="161" text-anchor="middle">Explorer</text>
+    <rect x="306" y="142" width="110" height="28" rx="14" fill="#eef2f8" stroke="#c6cdd8" stroke-width="1"/>
+    <text x="361" y="161" text-anchor="middle">Comparator</text>
+    <rect x="426" y="142" width="94" height="28" rx="14" fill="#eef2f8" stroke="#c6cdd8" stroke-width="1"/>
+    <text x="473" y="161" text-anchor="middle">Generator</text>
+  </g>
+  <text x="66" y="198" font-size="13.5" fill="#5b6675">interactive map (Plotly · WebGL above 1,500 points) · lasso · search · exports</text>
+
+  <!-- Compute sub-box -->
+  <rect x="48" y="236" width="472" height="130" rx="8" fill="#ffffff" stroke="#c6cdd8" stroke-width="1.5"/>
+  <text x="66" y="262" font-size="15" font-weight="bold" fill="#2b5fad">Client-side compute</text>
+  <g font-size="14" fill="#16202e">
+    <text x="66" y="288">PCA (subspace iteration) + UMAP — inside a Web Worker</text>
+    <text x="66" y="312">exact k-nearest-neighbor search, cosine, full 1,024 dims</text>
+    <text x="66" y="336">centroids · similarity histograms · out-of-sample placement</text>
+  </g>
+  <text x="66" y="358" font-size="13.5" fill="#5b6675" font-style="italic">packed Float32Array buffers, transferred zero-copy</text>
+
+  <!-- Storage sub-box -->
+  <rect x="48" y="382" width="472" height="140" rx="8" fill="#ffffff" stroke="#c6cdd8" stroke-width="1.5"/>
+  <text x="66" y="408" font-size="15" font-weight="bold" fill="#2b5fad">IndexedDB — local persistence</text>
+  <g font-size="13.5" font-family="Liberation Mono, DejaVu Sans Mono, monospace" fill="#16202e">
+    <text x="66" y="433">corpus:&#10216;id&#10217;</text>
+    <text x="240" y="433" font-family="Liberation Sans, DejaVu Sans, sans-serif" fill="#5b6675">documents + Float32 embeddings</text>
+    <text x="66" y="456">corpusmeta:&#10216;id&#10217;</text>
+    <text x="240" y="456" font-family="Liberation Sans, DejaVu Sans, sans-serif" fill="#5b6675">lightweight listing record</text>
+    <text x="66" y="479">candidates:&#10216;id&#10217;</text>
+    <text x="240" y="479" font-family="Liberation Sans, DejaVu Sans, sans-serif" fill="#5b6675">generation history</text>
+    <text x="66" y="502">umapModel (v2)</text>
+    <text x="240" y="502" font-family="Liberation Sans, DejaVu Sans, sans-serif" fill="#5b6675">PCA mean + components · coords</text>
+  </g>
+
+  <text x="284" y="556" text-anchor="middle" font-size="13.5" fill="#5b6675" font-style="italic">documents persist only here — deleting a corpus is a local delete</text>
+
+  <!-- ================= PROXY PANEL ================= -->
+  <rect x="622" y="158" width="296" height="284" rx="14" fill="#f5f7fa" stroke="#16202e" stroke-width="2"/>
+  <text x="770" y="192" text-anchor="middle" font-size="19" font-weight="bold" fill="#16202e" letter-spacing="2">EDGE PROXY</text>
+  <text x="770" y="214" text-anchor="middle" font-size="14" fill="#5b6675" font-style="italic">stateless Cloudflare Worker</text>
+
+  <g font-size="14" font-family="Liberation Mono, DejaVu Sans Mono, monospace" fill="#16202e">
+    <text x="654" y="246">POST /api/embed</text>
+    <text x="654" y="270">POST /api/generate</text>
+    <text x="654" y="294">POST /api/summarize</text>
+    <text x="654" y="318">POST /api/analyze</text>
+  </g>
+  <line x1="646" y1="336" x2="894" y2="336" stroke="#c6cdd8" stroke-width="1.5"/>
+  <text x="654" y="362" font-size="13.5" fill="#16202e">secrets: <tspan font-family="Liberation Mono, DejaVu Sans Mono, monospace">VOYAGE_API_KEY</tspan></text>
+  <text x="712" y="384" font-size="13.5" fill="#16202e" font-family="Liberation Mono, DejaVu Sans Mono, monospace">ANTHROPIC_API_KEY</text>
+  <text x="770" y="420" text-anchor="middle" font-size="14" font-weight="bold" fill="#2b5fad">no storage · no logs · no accounts</text>
+
+  <!-- ================= PROVIDERS ================= -->
+  <rect x="996" y="96" width="280" height="150" rx="14" fill="#ffffff" stroke="#16202e" stroke-width="2"/>
+  <text x="1136" y="130" text-anchor="middle" font-size="17" font-weight="bold" fill="#16202e" letter-spacing="1.5">VOYAGE AI</text>
+  <text x="1136" y="152" text-anchor="middle" font-size="14" fill="#5b6675" font-style="italic">embedding models</text>
+  <text x="1136" y="184" text-anchor="middle" font-size="14" fill="#16202e">voyage-3.5-lite · voyage-3.5</text>
+  <text x="1136" y="208" text-anchor="middle" font-size="14" fill="#16202e">1,024-dimensional vectors</text>
+
+  <rect x="996" y="342" width="280" height="176" rx="14" fill="#ffffff" stroke="#16202e" stroke-width="2"/>
+  <text x="1136" y="376" text-anchor="middle" font-size="17" font-weight="bold" fill="#16202e" letter-spacing="1.5">ANTHROPIC CLAUDE</text>
+  <text x="1136" y="398" text-anchor="middle" font-size="14" fill="#5b6675" font-style="italic">language models</text>
+  <text x="1136" y="430" text-anchor="middle" font-size="14" fill="#16202e">Sonnet 4.6 — generation</text>
+  <text x="1136" y="452" text-anchor="middle" font-size="13.5" fill="#5b6675">(16,384-token output budget)</text>
+  <text x="1136" y="478" text-anchor="middle" font-size="14" fill="#16202e">Haiku 4.5 — summarize · analyze</text>
+  <text x="1136" y="500" text-anchor="middle" font-size="13.5" fill="#5b6675">(4,096-token output budget)</text>
+
+  <!-- ================= ARROWS ================= -->
+  <line x1="552" y1="300" x2="614" y2="300" stroke="#2b5fad" stroke-width="2.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="583" y="284" text-anchor="middle" font-size="13" fill="#2b5fad" font-weight="bold">HTTPS</text>
+
+  <path d="M 918 240 C 952 220, 960 200, 988 178" fill="none" stroke="#2b5fad" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M 918 372 C 952 388, 960 400, 988 418" fill="none" stroke="#2b5fad" stroke-width="2.5" marker-end="url(#arrow)"/>
+</svg>
