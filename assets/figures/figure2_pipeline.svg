@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="470" viewBox="0 0 1300 470" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif">
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2b5fad"/>
+    </marker>
+    <marker id="arrow2g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#5b6675"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1300" height="470" fill="#ffffff"/>
+
+  <!-- ===== Stage 1: Documents ===== -->
+  <rect x="24" y="48" width="196" height="150" rx="12" fill="#f5f7fa" stroke="#16202e" stroke-width="2"/>
+  <text x="122" y="80" text-anchor="middle" font-size="16" font-weight="bold" fill="#16202e" letter-spacing="1">DOCUMENTS</text>
+  <text x="122" y="106" text-anchor="middle" font-size="14" fill="#16202e">CSV · JSON · TXT</text>
+  <text x="122" y="132" text-anchor="middle" font-size="13.5" fill="#5b6675">field map:</text>
+  <text x="122" y="152" text-anchor="middle" font-size="13.5" fill="#5b6675">content* · title</text>
+  <text x="122" y="172" text-anchor="middle" font-size="13.5" fill="#5b6675">category · id</text>
+
+  <!-- ===== Stage 2: Embed ===== -->
+  <rect x="286" y="48" width="212" height="150" rx="12" fill="#f5f7fa" stroke="#16202e" stroke-width="2"/>
+  <text x="392" y="80" text-anchor="middle" font-size="16" font-weight="bold" fill="#16202e" letter-spacing="1">EMBED</text>
+  <text x="392" y="106" text-anchor="middle" font-size="14" fill="#16202e">Voyage AI · 1,024 dims</text>
+  <text x="392" y="130" text-anchor="middle" font-size="13.5" fill="#5b6675">batches of 100 (client)</text>
+  <text x="392" y="150" text-anchor="middle" font-size="13.5" fill="#5b6675">chunks of 128 (proxy)</text>
+  <text x="392" y="170" text-anchor="middle" font-size="13.5" fill="#5b6675">&#8804;4 attempts · backoff + jitter</text>
+
+  <!-- ===== Stage 3: PCA ===== -->
+  <rect x="564" y="48" width="232" height="150" rx="12" fill="#f5f7fa" stroke="#2b5fad" stroke-width="2.5"/>
+  <text x="680" y="80" text-anchor="middle" font-size="16" font-weight="bold" fill="#2b5fad" letter-spacing="1">PCA</text>
+  <text x="680" y="106" text-anchor="middle" font-size="13.5" fill="#16202e">fit on &#8804;2,500 sampled rows</text>
+  <text x="680" y="128" text-anchor="middle" font-size="13.5" fill="#16202e">subspace iteration:</text>
+  <text x="680" y="148" text-anchor="middle" font-size="13.5" fill="#16202e">75-column block × 15 iters</text>
+  <text x="680" y="170" text-anchor="middle" font-size="13.5" fill="#5b6675">Rayleigh–Ritz · seeded PRNG</text>
+
+  <!-- ===== Stage 4: UMAP ===== -->
+  <rect x="862" y="48" width="204" height="150" rx="12" fill="#f5f7fa" stroke="#2b5fad" stroke-width="2.5"/>
+  <text x="964" y="80" text-anchor="middle" font-size="16" font-weight="bold" fill="#2b5fad" letter-spacing="1">UMAP</text>
+  <text x="964" y="106" text-anchor="middle" font-size="13.5" fill="#16202e">n_neighbors = 15</text>
+  <text x="964" y="128" text-anchor="middle" font-size="13.5" fill="#16202e">min_dist = 0.1</text>
+  <text x="964" y="150" text-anchor="middle" font-size="13.5" fill="#16202e">epochs 500 &#8594; 75</text>
+  <text x="964" y="170" text-anchor="middle" font-size="13.5" fill="#5b6675">adaptive to corpus size</text>
+
+  <!-- ===== Stage 5: Map ===== -->
+  <rect x="1132" y="48" width="148" height="150" rx="12" fill="#f5f7fa" stroke="#16202e" stroke-width="2"/>
+  <text x="1206" y="80" text-anchor="middle" font-size="16" font-weight="bold" fill="#16202e" letter-spacing="1">MAP</text>
+  <!-- tiny scatter sketch -->
+  <g fill="#2b5fad" opacity="0.75">
+    <circle cx="1168" cy="118" r="3.5"/><circle cx="1180" cy="108" r="3.5"/><circle cx="1176" cy="126" r="3.5"/>
+    <circle cx="1190" cy="118" r="3.5"/><circle cx="1186" cy="132" r="3.5"/>
+  </g>
+  <g fill="#c99700" opacity="0.85">
+    <circle cx="1232" cy="150" r="3.5"/><circle cx="1244" cy="142" r="3.5"/><circle cx="1240" cy="160" r="3.5"/>
+    <circle cx="1252" cy="152" r="3.5"/>
+  </g>
+  <g fill="#5b6675" opacity="0.7">
+    <circle cx="1210" cy="100" r="3.5"/><circle cx="1222" cy="112" r="3.5"/><circle cx="1218" cy="96" r="3.5"/>
+  </g>
+  <text x="1206" y="188" text-anchor="middle" font-size="13.5" fill="#5b6675">click · lasso · search</text>
+
+  <!-- ===== Flow arrows with data shapes ===== -->
+  <line x1="220" y1="123" x2="278" y2="123" stroke="#2b5fad" stroke-width="2.5" marker-end="url(#arrow2)"/>
+  <text x="249" y="112" text-anchor="middle" font-size="12.5" fill="#5b6675">N rows</text>
+
+  <line x1="498" y1="123" x2="556" y2="123" stroke="#2b5fad" stroke-width="2.5" marker-end="url(#arrow2)"/>
+  <text x="527" y="104" text-anchor="middle" font-size="13" fill="#16202e" font-family="Liberation Mono, DejaVu Sans Mono, monospace">N × 1,024</text>
+  <text x="527" y="145" text-anchor="middle" font-size="12" fill="#5b6675">float32</text>
+
+  <line x1="796" y1="123" x2="854" y2="123" stroke="#2b5fad" stroke-width="2.5" marker-end="url(#arrow2)"/>
+  <text x="825" y="104" text-anchor="middle" font-size="13" fill="#16202e" font-family="Liberation Mono, DejaVu Sans Mono, monospace">N × 50</text>
+
+  <line x1="1066" y1="123" x2="1124" y2="123" stroke="#2b5fad" stroke-width="2.5" marker-end="url(#arrow2)"/>
+  <text x="1095" y="104" text-anchor="middle" font-size="13" fill="#16202e" font-family="Liberation Mono, DejaVu Sans Mono, monospace">N × 2</text>
+
+  <!-- ===== Web Worker band ===== -->
+  <path d="M 564 222 L 564 236 L 1066 236 L 1066 222" fill="none" stroke="#5b6675" stroke-width="1.5"/>
+  <text x="815" y="262" text-anchor="middle" font-size="14" fill="#16202e">runs in a <tspan font-weight="bold">Web Worker</tspan> over one transferred Float32Array — zero-copy, main thread stays responsive</text>
+  <text x="815" y="284" text-anchor="middle" font-size="13" fill="#5b6675" font-style="italic">(main-thread fallback when workers are unavailable)</text>
+
+  <!-- ===== Persisted model ===== -->
+  <rect x="264" y="330" width="772" height="106" rx="12" fill="#ffffff" stroke="#16202e" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="650" y="360" text-anchor="middle" font-size="15" font-weight="bold" fill="#16202e" letter-spacing="1">PERSISTED PROJECTION MODEL &#8212; IndexedDB</text>
+  <text x="650" y="388" text-anchor="middle" font-size="13.5" fill="#16202e" font-family="Liberation Mono, DejaVu Sans Mono, monospace">pcaMean [1,024] · pcaComponents [1,024 × 50] · reduced [N × 50] · coords [N × 2]</text>
+  <text x="650" y="416" text-anchor="middle" font-size="13.5" fill="#5b6675" font-style="italic">fixes the map, so new documents can be placed onto it later (out-of-sample placement, §6.2)</text>
+
+  <line x1="815" y1="292" x2="815" y2="322" stroke="#5b6675" stroke-width="2" marker-end="url(#arrow2g)"/>
+</svg>
