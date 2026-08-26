@@ -3,7 +3,7 @@
 This directory holds two renderings of the same true system.
 
 1. **The whitepaper** — a technical account prepared as an arXiv-style preprint.
-2. **The narrative** — *The Shape of What You've Written*, a story-driven essay for a lay reader arriving cold, meant to end in them opening the tool.
+2. **The narrative** — *The Shape of What You've Written*, a two-page, visual-first piece for a lay reader arriving cold, meant to end in them opening the tool.
 
 ## Contents
 
@@ -14,14 +14,15 @@ This directory holds two renderings of the same true system.
 | `whitepaper.pdf` | PDF rendering of the DOCX. For a non-TeX workflow this is the file arXiv actually accepts. |
 | `references.bib` | All 12 citations in BibTeX, in manuscript order, for anyone porting the paper to LaTeX. |
 | `build_whitepaper_docx.cjs` | Reproducible DOCX build script for the whitepaper (`docx` npm package). |
-| `narrative.md` | The essay source of record (~2,200 words). No technical prerequisites; ends with a ten-minute on-ramp. |
-| `narrative.docx` | The essay as a Word manuscript — book-style typography (Georgia, ragged right), 8 pages, with the story figure. |
-| `narrative.pdf` | PDF rendering of the essay. |
+| `narrative.md` | The narrative source of record (~750 words). No technical prerequisites; ends with a ten-minute on-ramp. |
+| `narrative.docx` | The narrative as a designed two-page Word piece — title band, gold section kickers, the story figure, display lines, CTA. |
+| `narrative.pdf` | PDF rendering of the two-pager. |
 | `build_narrative_docx.cjs` | Reproducible DOCX build script for the essay. |
 | `figures/figure1_architecture.svg/.png` | Whitepaper Figure 1 — system architecture (client / edge proxy / model providers). |
 | `figures/figure2_pipeline.svg/.png` | Whitepaper Figure 2 — the projection pipeline with data shapes (N×1,024 → N×50 → N×2) and the persisted model. |
 | `figures/figure3_generation_loop.svg/.png` | Whitepaper Figure 3 — the generate-and-verify loop with the mini-map sketch. |
-| `figures/figure4_story_map.svg/.png` | Essay figure — the subject-line story in two panels: the gap the map revealed, then the drafts that landed in it. |
+| `figures/figure4_story_map.svg/.png` | Narrative figure — the subject-line story in two panels: the gap the map revealed, then the drafts that landed in it. |
+| `figures/narrative_band.svg/.png` | Narrative title band — scattered gray dots organizing into three colored clusters, left to right. |
 
 SVGs are the figure sources; the PNGs (2,600 px wide, ~300 DPI at print width) are what the DOCX files embed.
 
@@ -29,7 +30,7 @@ SVGs are the figure sources; the PNGs (2,600 px wide, ~300 DPI at print width) a
 
 The **whitepaper** is written in a Simplified-Technical-English register: short declarative sentences, active voice, one meaning per term (document, corpus, embedding, map, target zone, candidate), no synonym drift. Every number in the text — PCA sample size, block width, iteration count, UMAP parameters, batch sizes, thresholds, neighbor counts — is taken directly from the code in `src/lib/` and `worker/index.js`, not from memory.
 
-The **narrative** drops those constraints and keeps only the truthfulness: same system, same behavior, no invented features — told as a story (the pile, the map, the two thousand subject lines, the gap, the stars that land) for a reader who has never heard the word "embedding."
+The **narrative** drops those constraints and keeps only the truthfulness: same system, same behavior, no invented features — told in two pages (the pile, the map, the two thousand subject lines, the gap, the stars that land) for a reader who has never heard the word "embedding."
 
 ## Rebuilding
 
