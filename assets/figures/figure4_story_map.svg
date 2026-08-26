@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="640" viewBox="0 0 1300 640" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif">
+  <rect width="1300" height="640" fill="#ffffff"/>
+  <defs>
+    <path id="st4" d="M 0,-8.5 L 2.3,-2.7 L 8.1,-2.7 L 3.5,1.0 L 5.0,6.9 L 0,3.4 L -5.0,6.9 L -3.5,1.0 L -8.1,-2.7 L -2.3,-2.7 Z"/>
+  </defs>
+  <text x="327.0" y="52" text-anchor="middle" font-size="17" font-weight="bold" fill="#16202e" letter-spacing="3">WHAT THE MAP SHOWED</text>
+  <rect x="22" y="78" width="610" height="540" rx="12" fill="#fbfcfe" stroke="#d7dde6" stroke-width="1.5"/>
+  <g fill="#9aa3af" opacity="0.5">
+    <circle cx="347.7" cy="519.8" r="4.0"/>
+    <circle cx="139.2" cy="157.2" r="4.0"/>
+    <circle cx="87.6" cy="511.8" r="4.0"/>
+    <circle cx="521.8" cy="462.4" r="4.0"/>
+    <circle cx="123.9" cy="421.9" r="4.0"/>
+    <circle cx="133.4" cy="523.6" r="4.0"/>
+    <circle cx="407.8" cy="461.6" r="4.0"/>
+    <circle cx="508.2" cy="555.9" r="4.0"/>
+    <circle cx="192.7" cy="322.6" r="4.0"/>
+    <circle cx="448.4" cy="430.6" r="4.0"/>
+    <circle cx="570.2" cy="250.8" r="4.0"/>
+    <circle cx="236.4" cy="539.5" r="4.0"/>
+    <circle cx="264.5" cy="521.9" r="4.0"/>
+    <circle cx="457.6" cy="453.7" r="4.0"/>
+    <circle cx="178.4" cy="201.1" r="4.0"/>
+    <circle cx="83.1" cy="208.4" r="4.0"/>
+    <circle cx="413.6" cy="156.6" r="4.0"/>
+    <circle cx="190.3" cy="380.3" r="4.0"/>
+    <circle cx="147.7" cy="274.4" r="4.0"/>
+    <circle cx="128.6" cy="571.9" r="4.0"/>
+    <circle cx="378.3" cy="445.3" r="4.0"/>
+    <circle cx="571.8" cy="525.7" r="4.0"/>
+    <circle cx="494.4" cy="141.3" r="4.0"/>
+    <circle cx="373.5" cy="547.1" r="4.0"/>
+    <circle cx="404.8" cy="206.8" r="4.0"/>
+    <circle cx="445.4" cy="476.7" r="4.0"/>
+    <circle cx="104.3" cy="354.9" r="4.0"/>
+    <circle cx="421.5" cy="538.3" r="4.0"/>
+    <circle cx="538.2" cy="265.0" r="4.0"/>
+    <circle cx="385.2" cy="497.1" r="4.0"/>
+    <circle cx="372.4" cy="262.9" r="4.0"/>
+    <circle cx="481.7" cy="435.7" r="4.0"/>
+    <circle cx="191.3" cy="350.6" r="4.0"/>
+    <circle cx="376.0" cy="231.7" r="4.0"/>
+    <circle cx="161.9" cy="339.0" r="4.0"/>
+    <circle cx="104.5" cy="348.3" r="4.0"/>
+    <circle cx="555.8" cy="495.6" r="4.0"/>
+    <circle cx="95.2" cy="495.5" r="4.0"/>
+    <circle cx="439.6" cy="443.1" r="4.0"/>
+    <circle cx="80.9" cy="466.2" r="4.0"/>
+    <circle cx="234.7" cy="291.2" r="4.0"/>
+    <circle cx="334.2" cy="194.1" r="4.0"/>
+    <circle cx="81.1" cy="494.5" r="4.0"/>
+    <circle cx="207.9" cy="138.6" r="4.0"/>
+    <circle cx="465.5" cy="451.5" r="4.0"/>
+    <circle cx="267.6" cy="210.9" r="4.0"/>
+  </g>
+  <g fill="#c99700" opacity="0.9">
+    <circle cx="179.3" cy="489.8" r="4.6"/>
+    <circle cx="159.6" cy="460.7" r="4.6"/>
+    <circle cx="169.7" cy="470.3" r="4.6"/>
+    <circle cx="188.4" cy="446.8" r="4.6"/>
+    <circle cx="198.9" cy="443.3" r="4.6"/>
+    <circle cx="205.7" cy="456.1" r="4.6"/>
+    <circle cx="199.7" cy="489.3" r="4.6"/>
+    <circle cx="189.6" cy="463.7" r="4.6"/>
+    <circle cx="173.2" cy="450.4" r="4.6"/>
+    <circle cx="231.1" cy="493.4" r="4.6"/>
+    <circle cx="239.2" cy="487.9" r="4.6"/>
+    <circle cx="201.1" cy="463.9" r="4.6"/>
+  </g>
+  <g fill="#c99700" opacity="0.9">
+    <circle cx="461.2" cy="204.5" r="4.6"/>
+    <circle cx="492.3" cy="268.3" r="4.6"/>
+    <circle cx="486.8" cy="249.9" r="4.6"/>
+    <circle cx="443.0" cy="220.5" r="4.6"/>
+    <circle cx="487.8" cy="288.7" r="4.6"/>
+    <circle cx="478.6" cy="226.3" r="4.6"/>
+    <circle cx="488.7" cy="271.3" r="4.6"/>
+    <circle cx="437.4" cy="262.5" r="4.6"/>
+    <circle cx="443.0" cy="244.0" r="4.6"/>
+    <circle cx="479.8" cy="244.8" r="4.6"/>
+    <circle cx="429.6" cy="253.0" r="4.6"/>
+    <circle cx="431.6" cy="260.9" r="4.6"/>
+  </g>
+  <g opacity="1.0">
+    <text x="192" y="536" text-anchor="middle" font-size="16" font-weight="bold" fill="#8a6a00" letter-spacing="2">URGENCY</text>
+    <text x="192" y="558" text-anchor="middle" font-size="13" font-style="italic" fill="#5b6675">&#8220;Final hours: registration closes tonight&#8221;</text>
+    <text x="467" y="181" text-anchor="middle" font-size="16" font-weight="bold" fill="#8a6a00" letter-spacing="2">CURIOSITY</text>
+    <text x="467" y="201" text-anchor="middle" font-size="13" font-style="italic" fill="#5b6675">&#8220;The one metric nobody reports&#8221;</text>
+  </g>
+  <circle cx="337" cy="363" r="62" fill="#d94f4f" fill-opacity="0.05" stroke="#d94f4f" stroke-width="2" stroke-dasharray="8 6" opacity="1.0"/>
+    <text x="522" y="546" text-anchor="middle" font-size="15" font-weight="bold" fill="#d94f4f">the gap</text>
+    <text x="522" y="566" text-anchor="middle" font-size="13" fill="#5b6675">nothing written here yet</text>
+    <line x1="482" y1="530" x2="377" y2="407" stroke="#d94f4f" stroke-width="1.5"/>
+  <text x="973.0" y="52" text-anchor="middle" font-size="17" font-weight="bold" fill="#16202e" letter-spacing="3">WHAT CAME BACK</text>
+  <rect x="668" y="78" width="610" height="540" rx="12" fill="#fbfcfe" stroke="#d7dde6" stroke-width="1.5"/>
+  <g fill="#9aa3af" opacity="0.275">
+    <circle cx="993.7" cy="519.8" r="4.0"/>
+    <circle cx="785.2" cy="157.2" r="4.0"/>
+    <circle cx="733.6" cy="511.8" r="4.0"/>
+    <circle cx="1167.8" cy="462.4" r="4.0"/>
+    <circle cx="769.9" cy="421.9" r="4.0"/>
+    <circle cx="779.4" cy="523.6" r="4.0"/>
+    <circle cx="1053.8" cy="461.6" r="4.0"/>
+    <circle cx="1154.2" cy="555.9" r="4.0"/>
+    <circle cx="838.7" cy="322.6" r="4.0"/>
+    <circle cx="1094.4" cy="430.6" r="4.0"/>
+    <circle cx="1216.2" cy="250.8" r="4.0"/>
+    <circle cx="882.4" cy="539.5" r="4.0"/>
+    <circle cx="910.5" cy="521.9" r="4.0"/>
+    <circle cx="1103.6" cy="453.7" r="4.0"/>
+    <circle cx="824.4" cy="201.1" r="4.0"/>
+    <circle cx="729.1" cy="208.4" r="4.0"/>
+    <circle cx="1059.6" cy="156.6" r="4.0"/>
+    <circle cx="836.3" cy="380.3" r="4.0"/>
+    <circle cx="793.7" cy="274.4" r="4.0"/>
+    <circle cx="774.6" cy="571.9" r="4.0"/>
+    <circle cx="1024.3" cy="445.3" r="4.0"/>
+    <circle cx="1217.8" cy="525.7" r="4.0"/>
+    <circle cx="1140.4" cy="141.3" r="4.0"/>
+    <circle cx="1019.5" cy="547.1" r="4.0"/>
+    <circle cx="1050.8" cy="206.8" r="4.0"/>
+    <circle cx="1091.4" cy="476.7" r="4.0"/>
+    <circle cx="750.3" cy="354.9" r="4.0"/>
+    <circle cx="1067.5" cy="538.3" r="4.0"/>
+    <circle cx="1184.2" cy="265.0" r="4.0"/>
+    <circle cx="1031.2" cy="497.1" r="4.0"/>
+    <circle cx="1018.4" cy="262.9" r="4.0"/>
+    <circle cx="1127.7" cy="435.7" r="4.0"/>
+    <circle cx="837.3" cy="350.6" r="4.0"/>
+    <circle cx="1022.0" cy="231.7" r="4.0"/>
+    <circle cx="807.9" cy="339.0" r="4.0"/>
+    <circle cx="750.5" cy="348.3" r="4.0"/>
+    <circle cx="1201.8" cy="495.6" r="4.0"/>
+    <circle cx="741.2" cy="495.5" r="4.0"/>
+    <circle cx="1085.6" cy="443.1" r="4.0"/>
+    <circle cx="726.9" cy="466.2" r="4.0"/>
+    <circle cx="880.7" cy="291.2" r="4.0"/>
+    <circle cx="980.2" cy="194.1" r="4.0"/>
+    <circle cx="727.1" cy="494.5" r="4.0"/>
+    <circle cx="853.9" cy="138.6" r="4.0"/>
+    <circle cx="1111.5" cy="451.5" r="4.0"/>
+    <circle cx="913.6" cy="210.9" r="4.0"/>
+  </g>
+  <g fill="#c99700" opacity="0.49500000000000005">
+    <circle cx="825.3" cy="489.8" r="4.6"/>
+    <circle cx="805.6" cy="460.7" r="4.6"/>
+    <circle cx="815.7" cy="470.3" r="4.6"/>
+    <circle cx="834.4" cy="446.8" r="4.6"/>
+    <circle cx="844.9" cy="443.3" r="4.6"/>
+    <circle cx="851.7" cy="456.1" r="4.6"/>
+    <circle cx="845.7" cy="489.3" r="4.6"/>
+    <circle cx="835.6" cy="463.7" r="4.6"/>
+    <circle cx="819.2" cy="450.4" r="4.6"/>
+    <circle cx="877.1" cy="493.4" r="4.6"/>
+    <circle cx="885.2" cy="487.9" r="4.6"/>
+    <circle cx="847.1" cy="463.9" r="4.6"/>
+  </g>
+  <g fill="#c99700" opacity="0.49500000000000005">
+    <circle cx="1107.2" cy="204.5" r="4.6"/>
+    <circle cx="1138.3" cy="268.3" r="4.6"/>
+    <circle cx="1132.8" cy="249.9" r="4.6"/>
+    <circle cx="1089.0" cy="220.5" r="4.6"/>
+    <circle cx="1133.8" cy="288.7" r="4.6"/>
+    <circle cx="1124.6" cy="226.3" r="4.6"/>
+    <circle cx="1134.7" cy="271.3" r="4.6"/>
+    <circle cx="1083.4" cy="262.5" r="4.6"/>
+    <circle cx="1089.0" cy="244.0" r="4.6"/>
+    <circle cx="1125.8" cy="244.8" r="4.6"/>
+    <circle cx="1075.6" cy="253.0" r="4.6"/>
+    <circle cx="1077.6" cy="260.9" r="4.6"/>
+  </g>
+  <g opacity="0.55">
+    <text x="838" y="536" text-anchor="middle" font-size="16" font-weight="bold" fill="#8a6a00" letter-spacing="2">URGENCY</text>
+    <text x="838" y="558" text-anchor="middle" font-size="13" font-style="italic" fill="#5b6675">&#8220;Final hours: registration closes tonight&#8221;</text>
+    <text x="1113" y="181" text-anchor="middle" font-size="16" font-weight="bold" fill="#8a6a00" letter-spacing="2">CURIOSITY</text>
+    <text x="1113" y="201" text-anchor="middle" font-size="13" font-style="italic" fill="#5b6675">&#8220;The one metric nobody reports&#8221;</text>
+  </g>
+  <circle cx="983" cy="363" r="62" fill="#d94f4f" fill-opacity="0.04" stroke="#d94f4f" stroke-width="2" stroke-dasharray="8 6" opacity="0.75"/>
+  <g fill="#c99700" stroke="#8a6a00" stroke-width="0.8">
+    <use href="#st4" transform="translate(968,346)"/>
+    <use href="#st4" transform="translate(1000,370)"/>
+    <use href="#st4" transform="translate(974,384)"/>
+    <use href="#st4" transform="translate(1006,340)"/>
+    <use href="#st4" transform="translate(953,366)"/>
+  </g>
+  <circle cx="848" cy="253" r="5.5" fill="none" stroke="#5b6675" stroke-width="2" opacity="0.8"/>
+  <circle cx="1138" cy="468" r="5.5" fill="none" stroke="#5b6675" stroke-width="2" opacity="0.8"/>
+  <circle cx="1063" cy="558" r="5.5" fill="none" stroke="#5b6675" stroke-width="2" opacity="0.8"/>
+  <circle cx="778" cy="378" r="5.5" fill="none" stroke="#5b6675" stroke-width="2" opacity="0.8"/>
+  <circle cx="1188" cy="328" r="5.5" fill="none" stroke="#5b6675" stroke-width="2" opacity="0.8"/>
+    <text x="1130" y="546" text-anchor="middle" font-size="15" font-weight="bold" fill="#16202e">ten drafts, measured</text>
+    <text x="1130" y="566" text-anchor="middle" font-size="13" fill="#5b6675"><tspan fill="#c99700">&#9733;</tspan> five landed in the gap &#160;&#160;<tspan>&#9675;</tspan> five drifted</text>
+</svg>
