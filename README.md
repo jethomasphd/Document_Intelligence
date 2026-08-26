@@ -6,7 +6,7 @@ You have hundreds or thousands of documents. Emails, product descriptions, resea
 
 Document Intelligence changes that. Upload your documents, and they arrange themselves on a visual map based on what they *mean*. Similar documents cluster together. Gaps become visible. Then you can generate new content that targets any region of that map — and verify it landed where you intended.
 
-[Live Demo](https://document-intelligence.pages.dev) | [What Can I Do With This?](#what-can-i-do-with-this) | [User Guide](#user-guide) | [Architecture](#architecture) | [Glossary](#plain-english-glossary) | [Deployment](#deployment)
+[Live Demo](https://document-intelligence.pages.dev) | [Read the Paper](#read-the-paper) | [What Can I Do With This?](#what-can-i-do-with-this) | [User Guide](#user-guide) | [Architecture](#architecture) | [Glossary](#plain-english-glossary) | [Deployment](#deployment)
 
 ---
 
@@ -35,6 +35,22 @@ The platform then uses [UMAP](https://umap-learn.readthedocs.io/) to project tha
 The real power comes from the generative layer. Once you can see where meaning lives, you can point to a region and say "generate something that belongs here." Claude doesn't just write — it writes *with semantic intent*, producing documents that land in the neighborhood you specified. You verify this by embedding the output and checking where it actually falls on the map.
 
 This is not search. This is not summarization. This is **spatial reasoning over meaning**.
+
+---
+
+## Read the Paper
+
+Two companion documents in [`assets/`](assets/) tell the story of this system — one for any reader, one for a technical audience.
+
+**The narrative — [*The Shape of What You've Written*](assets/narrative.md)**
+A two-page, visual-first introduction: the pile, the map, the two thousand subject lines, the gap, and the stars that land. No technical background needed — it ends with a ten-minute on-ramp to the tool.
+[Markdown](assets/narrative.md) · [PDF](assets/narrative.pdf) · [Word](assets/narrative.docx)
+
+**The whitepaper — [*Document Intelligence: A Browser-Native System for Semantic Corpus Mapping and Map-Targeted Document Generation*](assets/whitepaper.md)**
+An arXiv-style technical preprint (8 pages): the zero-backend architecture, the browser-tuned PCA + UMAP projection pipeline, out-of-sample placement, and the generate-and-verify loop. With figures and BibTeX references.
+[Markdown](assets/whitepaper.md) · [PDF](assets/whitepaper.pdf) · [Word](assets/whitepaper.docx)
+
+Figures, references, and the reproducible build scripts are documented in [`assets/README.md`](assets/README.md).
 
 ---
 
@@ -259,6 +275,11 @@ src/
   index.css                Tailwind + dark theme + Plotly overrides
 worker/
   index.js                 Cloudflare Worker: 4 API endpoints
+assets/
+  whitepaper.{md,docx,pdf} Technical whitepaper (arXiv-style preprint) + references.bib
+  narrative.{md,docx,pdf}  Two-page narrative introduction
+  figures/                 Publication figures (SVG sources + 300-DPI PNG renders)
+  build_*.cjs              Reproducible DOCX build scripts
 ```
 
 ---

@@ -21,6 +21,9 @@ src/components/   — Layout, ui/ (Tooltip, InfoHint, StepGuide, ErrorBoundary),
 src/lib/          — api.js, storage.js, umap.js, knn.js, export.js
 src/store/        — Zustand global state
 worker/           — Standalone Cloudflare Worker (API proxy with secrets)
+assets/           — Publication assets: technical whitepaper + two-page narrative
+                    (md/docx/pdf each), figures (SVG + PNG), DOCX build scripts.
+                    Keep whitepaper claims in sync with the code; see assets/README.md
 ```
 
 ## Development
